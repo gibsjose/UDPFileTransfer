@@ -1,0 +1,47 @@
+CRC error checking
+Sequence number to ensure packets are delivered in order: 4 byte integer, don't deal with wraparound
+- don't send any file bigger than 2^32 packets.
+Send ACK after getting a packet
+
+Not allowed to send 1 packet, wait for ack, then send next packet.  This is too easy.
+Don't send all packets of a file at once either.
+Should take the "sliding window" strategy.
+- assume all packets of equal length
+
+1   2   3   4   5   6   7   8   9   10
+take a window size of 5 --> packets 1-5 are in the window
+Any packet that is in the sender's window the sender will send out onto the network.
+Once a packet is received, the receiver sends an ACK and then moves the window forward by one.
+The sender moves his window forward when he gets an ACK for the first packet in the window.
+- unload packet from memory
+- move window forward one packet (read next packet into first packet's memory)
+If the next packet that the receiver sees is (N + 1) not at the start of the window, the window does not move.
+- however he does send an ACK
+- sender does not move up his window because he still has not received an ACK for packet N
+After a certain amount of time, resend a packet that was not ACKed but has already been sent.
+
+If we get duplicate packets:
+- received a packet N, and the ACK sent by the receiver for packet N is lost, packet N will be resent by the sender
+--> this packet will be received outside of the sliding window
+
+Network simulator: Mininet
+ls /lab/networking/Mininet/
+--> copy all the files in the directory
+--> download the same virtual machine from mininet.org for our own use
+--> use in Virtualbox
+--> vmplayer path/to/file
+-->
+    mininet-vm tty1
+    login: mininet
+    password: mininet
+
+--> 2 hosts, h1 and h2
+--> 1 switch, s1
+    Network topology: h1 -- s1 -- h2
+--> controller 0
+    - concept unique to software-defined networking
+    - popular in last 2/3 years
+    - will talk about later in the semester
+h1 and h2 share the same filesystem, so save files with different names or directories than where they were sent from.
+Can run wireshark on the hosts.  Just click OK on the error dialog that pops up.
+Don't run wireshark on the main terminal of the simulator.  Just run it on the virtual hosts and/or switch.
