@@ -13,15 +13,23 @@
 // This is the default port for UDP File Transfer
 #define DEFAULT_PORT 8888
 
+typedef enum RunType {
+    Server,
+    Client
+} RunType;
+
 class ConfigManager {
 public:
-    ConfigManager();
-    ~ConfigManager();
-    void ParseArgs(int argc, char * argv[]);
-    unsigned GetPort(void) const;
-    std::string & GetAddress(void) const;
+    ConfigManager() : runType(Client), address("127.0.0.1"), port((uint16_t)8888) {}
+    RunType GetRunType(void) const { return runType; }
+    uint16_t GetPort(void) const { return port; }
+    std::string & GetAddress(void) const { return address; }
+
+    void ParseArgs(int, char **);
+    void PrintArgs(void);
 
 private:
+    RunType runType;
     std::string address;
-    unsigned port;
+    uint16_t port;
 };

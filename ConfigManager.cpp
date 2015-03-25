@@ -1,43 +1,41 @@
 #include "ConfigManager.h"
 
-ConfigManager::ConfigManager()
-{
-    mListeningPort = -1;
-}
+void ConfigManager::ParseArgs(int argc, char ** argv) {
 
-ConfigManager::~ConfigManager()
-{
-
-}
-
-void ConfigManager::parseArgs(int aArgc, char * aArgv[])
-{
-    // Attempt to find the port and IP of the DNS resolver on the command line.
-    // if(aArgc < 3)
-    // {
-    //     std::cerr << "Not enough arguments. Ex: DNSResolver -p 8888\n";
-    //     exit(-1);
-    // }
-    for(int i = 1; i + 1 < aArgc; i = i + 2)
-    {
-      char * lArgFlag = aArgv[i];
-      char * lArgValue = aArgv[i + 1];
-
-      if(!strcmp("-p", lArgFlag))
-      {
-        mListeningPort = atoi(lArgValue);
-      }
+    //Display @usage if incorrect usage
+    if((argc - 1) < 1) {
+        std::cerr << "@usage: UDPFileTransfer {-s, -c} [-p PORT] [-ip ADDRESS]" << std::endl;
+        exit(-1);
     }
 
-    // If no port was set for which to listen on for incoming DNS requests, set
-    // it to the default port.
-    if(mListeningPort == -1)
-    {
-        mListeningPort = DEFAULT_PORT;
+    //Parse Arguments
+    for(int i = 1; i < (argc - 1); ) {
+        char * argFlag = argv[i];
+
+        if(!strcmp("-s", argFlag)) {
+            runType = Server;
+            i++;
+        } else if (!strcmp("-c", argFlag)) {
+            runType = Client
+            i++;
+        } else {
+            char * argValue = argv[i + 1];
+
+            if(!strcmp("-p", argFlag)) {
+                port = atoi(argValue);
+            } else if(!strcmp("-ip", argFlag)) {
+                address = std::string(argValue);
+            }
+
+            i+= 2;
+        }
     }
 }
 
-int ConfigManager::getListeningPort() const
-{
-    return mListeningPort;
+void ConfigManager::PrintArgs(void) {
+    std::cout << "Configuration" << std::endl;
+    std::cout << "----------------------------------" << std::endl;
+    std::cout << "Run Type: " << (RunType == Server ? "Server" : "Client") << std::endl;
+    std::cout << "Address: " << address << std::endl;
+    std::cout << "Port: " << port << std::endl;
 }

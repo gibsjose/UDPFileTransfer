@@ -7,7 +7,4 @@ int main(int argc, char **argv){
 
   struct sockaddr_in serveraddr;
   serveraddr.sin_family = AF_INET;
-
-
-
 }
