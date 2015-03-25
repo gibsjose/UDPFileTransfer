@@ -1,3 +1,6 @@
+#ifndef EXCEPTION_H
+#define EXCEPTION_H
+
 #include <exception>
 #include <stdexcept>
 #include <string>
@@ -5,8 +8,7 @@
 #include <string.h>
 #include <errno.h>
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+
 
 class Exception : public std::runtime_error {
 public:
