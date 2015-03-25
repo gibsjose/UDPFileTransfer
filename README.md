@@ -35,7 +35,7 @@ UDP is more complicated:
         * Any packets in window will be sent by the transmitter
         * The receiver will only wait for packets within window ('only packets w/ sequence of 4 greater or less')
 * Window size of 5
-* Make sequence number a 4-byte integer (can assume max file to send = `2^37` packets)
+* Make sequence number a 4-byte integer (can assume max file to send = `2^32` packets)
 
 ###Duplicate Packets
 * `ACK` lost
