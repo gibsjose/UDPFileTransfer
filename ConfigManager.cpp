@@ -18,16 +18,24 @@ void ConfigManager::ParseArgs(int argc, char ** argv) {
         } else if(!strcmp("-c", argFlag)) {
             runType = Client;
             i++;
-        } else if(!strcmp("--help", argFlag) {
+        } else if(!strcmp("--help", argFlag)) {
             std::cout << "@usage: UDPFileTransfer [-s, -c] [-p PORT] [-ip ADDRESS]" << std::endl;
             std::cout << "\t Defaults to 'Server (-s)', 'Port 8888', 'Address 127.0.0.1'" << std::endl;
         } else {
             char * argValue = argv[i + 1];
 
             if(!strcmp("-p", argFlag)) {
-                port = atoi(argValue);
+                if(argValue == NULL) {
+                    port = (uint16_t)8888;
+                } else {
+                    port = atoi(argValue);
+                }
             } else if(!strcmp("-ip", argFlag)) {
-                address = std::string(argValue);
+                if(argValue == NULL) {
+                    address = "127.0.0.1";
+                } else {
+                    address = std::string(argValue);
+                }
             }
 
             i+= 2;
@@ -36,6 +44,7 @@ void ConfigManager::ParseArgs(int argc, char ** argv) {
 }
 
 void ConfigManager::PrintArgs(void) {
+    std::cout << std::endl;
     std::cout << "Configuration" << std::endl;
     std::cout << "----------------------------------" << std::endl;
     std::cout << "Run Type: " << (runType == Server ? "Server" : "Client") << std::endl;
