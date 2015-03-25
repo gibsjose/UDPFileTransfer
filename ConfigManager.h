@@ -10,18 +10,18 @@
 #include "Exception.h"
 #include "StringUtilities.h"
 
-// This is the default port to listen on for incoming DNS requests.
+// This is the default port for UDP File Transfer
 #define DEFAULT_PORT 8888
 
-class ConfigManager
-{
+class ConfigManager {
 public:
     ConfigManager();
     ~ConfigManager();
-    void parseArgs(int argc, char * argv[]);
-    int getListeningPort() const;
+    void ParseArgs(int argc, char * argv[]);
+    unsigned GetPort(void) const;
+    std::string & GetAddress(void) const;
 
 private:
-    std::string mResolverIP;
-    unsigned mListeningPort;
+    std::string address;
+    unsigned port;
 };
