@@ -23,7 +23,7 @@ public:
     ConfigManager() : runType(Client), address("127.0.0.1"), port((uint16_t)8888) {}
     RunType GetRunType(void) const { return runType; }
     uint16_t GetPort(void) const { return port; }
-    std::string & GetAddress(void) const { return address; }
+    const std::string & GetAddress(void) const { return address; }
 
     void ParseArgs(int, char **);
     void PrintArgs(void);
