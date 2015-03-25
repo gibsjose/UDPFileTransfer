@@ -1,3 +1,39 @@
+====================================================================================
+Sequence of operations:
+====================================================================================
+
+Sender (loop):
+- Wait for request
+- Read N packet's worth of file and construct packet objects
+- Send N packets to client
+- Loop:
+    - Iterate through list of sent and unACKed packets, if their timestamp sent is too long ago, resend
+    - Wait for ACKs with timeout = # of ms:
+        - If ACKed packet not in window, discard ACK, else
+            - If ACKed packet at beginning of window,
+                - Remove packet from window
+                - Increment window and read next packet's worth of data, constructing the new packet
+                - Send new packet
+            - else mark packet as ACKed
+
+Receiver:
+- Request file
+- Receive packets (not necessarily in order) --> loop until finished
+    - Wait for packet from sender
+    - If packet not in window, discard (maybe ACK so server won't resend?), else:
+        - Save packet in memory buffer
+        - If packet is not corrupted:
+            - Send ACK to sender
+            - If packet at beginning of window
+                - Write packet to disk, if last one, terminate
+                - Increment packet window
+
+
+====================================================================================
+
+
+
+
 CRC error checking
 Sequence number to ensure packets are delivered in order: 4 byte integer, don't deal with wraparound
 - don't send any file bigger than 2^32 packets.
