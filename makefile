@@ -11,7 +11,7 @@ BIN = UDPFileTransfer
 _DEPS =
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = UDPFileTransfer.o Packet.o ConfigManager.o
+_OBJ = UDPFileTransfer.o PacketController.o Packet.o Server.o Client.o ConfigManager.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: setup $(BIN)
