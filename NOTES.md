@@ -110,7 +110,7 @@ UDP is more complicated:
             * To run on both interfaces: Execute command twice, with both identifiers
         * NOTE: Use `add` for the first time running. Use `change` for subsequent runs
         * May want to run on only **one** interface (only on one side of the switch) to simulate only packets being lost, or only `ACK`s being lost, but will test with both
-2. Re-ordering
+2. Simulating Out-of-Order Packets
     1. Go to switch terminal
     2. Run `tc qdisc change dev <INTERFACE> netem delay 10ms reorder 20%`
         * Will send 20% of packets as normal
