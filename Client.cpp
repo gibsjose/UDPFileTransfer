@@ -7,7 +7,10 @@ int main(int argc, char **argv){
 
   struct sockaddr_in serveraddr;
   serveraddr.sin_family = AF_INET;
-
+  //Add in port
+  serveraddr.sin_port = htons();
+  //Add in IPv4 address
+  serveraddr.sin_addr.s_addr = inet_addr("");
 
 
 }
