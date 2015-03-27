@@ -1,4 +1,6 @@
-#UDP File Transfer Notes
+#UDP File Transfer
+
+[![BuildStatus](https://travis-ci.org/gibsjose/UDPFileTransfer.svg?branch=master)](https://travis-ci.org/gibsjose/UDPFileTransfer)
 
 ##Background
 TCP File transfer was fairly easy:
