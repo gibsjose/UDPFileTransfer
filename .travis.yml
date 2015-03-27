@@ -37,4 +37,5 @@ install:
 # Build
 script:
     - $CXX --version
+    - alias g++='g++-4.8'
     - make
