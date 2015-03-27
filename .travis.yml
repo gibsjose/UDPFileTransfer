@@ -3,8 +3,12 @@ language: cpp
 
 # Compiler is G++
 compiler:
-    # - clang
+    - clang++
     - g++
+
+os:
+    - linux
+    - osx
 
 # Notification Settings
 notifications:
@@ -38,4 +42,5 @@ install:
 script:
     - $CXX --version
     - alias g++='g++-4.8'
+    - export CXX="g++-4.8"
     - make

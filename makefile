@@ -1,5 +1,9 @@
 IDIR =
-CXX = g++
+
+ifndef CXX
+	CXX = g++
+endif
+
 CFLAGS = -I$(IDIR) -Wall -g -O0 -std=c++11
 
 ODIR = obj
