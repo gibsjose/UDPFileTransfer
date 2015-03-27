@@ -15,5 +15,7 @@
 #include <string>
 
 #include "ConfigManager.h"
+#include "Client.h"
+#include "Server.h"
 
 #endif//UDPFILETRANSFER_H

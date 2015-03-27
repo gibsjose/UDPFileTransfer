@@ -13,10 +13,10 @@ void ConfigManager::ParseArgs(int argc, char ** argv) {
         char * argFlag = argv[i];
 
         if(!strcmp("-s", argFlag)) {
-            runType = Server;
+            runType = RunServer;
             i++;
         } else if(!strcmp("-c", argFlag)) {
-            runType = Client;
+            runType = RunClient;
             i++;
         } else if(!strcmp("--help", argFlag)) {
             std::cout << "@usage: UDPFileTransfer [-s, -c] [-p PORT] [-ip ADDRESS]" << std::endl;
@@ -47,7 +47,7 @@ void ConfigManager::PrintArgs(void) {
     std::cout << std::endl;
     std::cout << "Configuration" << std::endl;
     std::cout << "----------------------------------" << std::endl;
-    std::cout << "Run Type: " << (runType == Server ? "Server" : "Client") << std::endl;
+    std::cout << "Run Type: " << (runType == RunServer ? "Server" : "Client") << std::endl;
     std::cout << "Address: " << address << std::endl;
     std::cout << "Port: " << port << std::endl;
 }

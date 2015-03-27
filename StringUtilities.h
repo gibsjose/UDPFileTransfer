@@ -257,4 +257,4 @@ public:
     }
 };
 
-#endif
+#endif//STRINGUTILITIES_H

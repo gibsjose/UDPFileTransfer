@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CONFIGMANAGER_H
+#define CONFIGMANAGER_H
+
 #include <iostream>
 #include <sys/socket.h>
 #include <string.h>
@@ -14,13 +16,13 @@
 #define DEFAULT_PORT 8888
 
 typedef enum RunType {
-    Server,
-    Client
+    RunServer,
+    RunClient
 } RunType;
 
 class ConfigManager {
 public:
-    ConfigManager() : runType(Client), address("127.0.0.1"), port((uint16_t)8888) {}
+    ConfigManager() : runType(RunClient), address("127.0.0.1"), port((uint16_t)8888) {}
     RunType GetRunType(void) const { return runType; }
     uint16_t GetPort(void) const { return port; }
     const std::string & GetAddress(void) const { return address; }
@@ -33,3 +35,5 @@ private:
     std::string address;
     uint16_t port;
 };
+
+#endif//CONFIGMANAGER_H
