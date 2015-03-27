@@ -6,6 +6,12 @@ compiler:
     - clang
     - g++
 
+# Notification Settings
+notifications:
+  email:
+    on_success: change # default: change
+    on_failure: change # default: always
+
 # Require 'sudo' to be able to install G++ v4.8
 sudo: required
 
