@@ -3,7 +3,7 @@ language: cpp
 
 # Compiler is G++
 compiler:
-    - clang
+    # - clang
     - g++
 
 # Notification Settings
