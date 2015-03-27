@@ -34,6 +34,7 @@ private:
     std::string address;
 
     std::string filepath;
+    std::string destination;
 };
 
 #endif//CLIENT_H

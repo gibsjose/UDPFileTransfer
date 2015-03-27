@@ -57,6 +57,7 @@ void Server::ReceiveRequestFromClient(void) {
     if(n < 0) {
         //Ignore 'temporarily unreachable...'
         if(errno != 35) {
+            std::cout << std::endl;
             std::cerr << "Error receiving request from client: " << strerror(errno) << std::endl;
         }
 
@@ -65,6 +66,7 @@ void Server::ReceiveRequestFromClient(void) {
 
     filepath = std::string(buffer);
 
+    std::cout << std::endl;
     std::cout << "Received " << n << " bytes from client" << std::endl;
     std::cout << "Client requested: " << filepath << std::endl;
 }

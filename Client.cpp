@@ -42,11 +42,16 @@ void Client::RequestFileFromServer(void) {
     filepath.clear();
 
     //Get filepath
+    std::cout << std::endl;
     std::cout << "Enter the path of the remote file: ";
     std::cin >> filepath;
 
+    std::cout << "Enter the destination path: ";
+    std::cin >> destination;
+
     //Remove newlines and leading/trailing whitespace
     StringUtilities::Trim(filepath);
+    StringUtilities::Trim(destination);
 
     char buffer[1024];
     strncpy(buffer, filepath.c_str(), 1024);
@@ -81,6 +86,22 @@ void Client::ReceiveFileFromServer(void) {
     }
 
     std::cout << "Received " << n << " bytes from server" << std::endl;
-    std::cout << "File contents:" << std::endl;
-    std::cout << buffer << std::endl;
+    // std::cout << "File contents:" << std::endl;
+    // std::cout << buffer << std::endl;
+
+    //Write to file
+    FILE * file = fopen(destination.c_str(), "wb");
+
+    if(file == NULL) {
+        std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
+        return;
+    }
+
+    int bytesWritten = fwrite(buffer, 1, n, file);
+
+    if(bytesWritten != n) {
+        std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
+    }
+
+    std::cout << "Successfully wrote file to \"" << destination << "\"" << std::endl;
 }
