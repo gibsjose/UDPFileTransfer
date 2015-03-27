@@ -1,5 +1,5 @@
 IDIR =
-CC = g++
+CXX = g++
 CFLAGS = -I$(IDIR) -Wall -g -O0 -std=c++11
 
 ODIR = obj
@@ -17,10 +17,10 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 all: setup $(BIN)
 
 $(ODIR)/%.o: %.cpp $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CXX) -c -o $@ $< $(CFLAGS)
 
 $(BIN): $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CXX) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean setup
 
