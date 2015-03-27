@@ -1,6 +1,13 @@
+# Language is C++
 language: cpp
+
+# Compiler is G++
 compiler: g++
 
+# Require 'sudo' to be able to install G++ v4.8
+sudo: required
+
+# Install G++ v4.8 for C++ 11 support ('-std=c++11')
 before_install:
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo apt-get update -qq
@@ -9,4 +16,5 @@ install:
 - sudo apt-get install -qq g++-4.8
 - export CXX="g++-4.8"
 
+# Build
 script: make
