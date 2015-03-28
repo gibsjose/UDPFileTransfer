@@ -70,6 +70,7 @@ void Client::RequestFileFromServer(void) {
 void Client::ReceiveFileFromServer(void) {
     //1MB File buffer
     char buffer[1024 * 1024];
+    FILE * file;
 
     unsigned int len = sizeof(struct sockaddr);
     int n = recvfrom(sock, buffer, (1024 * 1024), 0, (struct sockaddr *)&serverAddress, &len);
@@ -83,6 +84,9 @@ void Client::ReceiveFileFromServer(void) {
             std::cerr << "File \"" << filepath << "\" does not exist" << std::endl;
             return;
         }
+        else {
+          file = fopen(destination.c_str(), "wb");
+        }
     }
 
     std::cout << "Received " << n << " bytes from server" << std::endl;
@@ -90,7 +94,7 @@ void Client::ReceiveFileFromServer(void) {
     // std::cout << buffer << std::endl;
 
     //Write to file
-    FILE * file = fopen(destination.c_str(), "wb");
+
 
     if(file == NULL) {
         std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
