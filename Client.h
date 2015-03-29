@@ -30,6 +30,7 @@ private:
     void CreateServerSocket(void);
     void RequestFileFromServer(void);
     Packet ReceiveFileFromServer(void);
+    void SendAckToServer(uint32_t id);
 
     int sock;
     struct sockaddr_in serverAddress;

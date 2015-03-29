@@ -15,12 +15,18 @@ void Client::Run(void) {
     while(true) {
       Packet p;
       p = ReceiveFileFromServer();
+
+
+      //TODO verify checksum
+
+
+      SendAckToServer(p.GetID());
       if(!p.isEmpty()) {
         window.Push(p);
       }
       Packet pakPop;
       while(!(pakPop = window.Pop()).isEmpty()) {
-        int bytesWritten = fwrite(pakPop.GetRawData(), 1, strlen(pakPop.GetRawData()), file);
+        int bytesWritten = fwrite(pakPop.GetMData(), 1, strlen(pakPop.GetMData()), file);
         if(bytesWritten != pakPop.GetSize()) {
             std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
         }
@@ -85,6 +91,21 @@ void Client::RequestFileFromServer(void) {
 
     std::cout << "Sent " << n << " bytes to server" << std::endl;
     std::cout << "Requested: " << buffer << std::endl;
+}
+
+void Client::SendAckToServer(uint32_t id) {
+    //Clear filepath
+    filepath.clear();
+
+    char buffer[1024];
+    Packet ack = Packet();
+    ack.setAckPacket();
+    ack.setId(id);
+
+    //Send the filepath request to the server
+    int n = sendto(sock, ack.GetRawData(), strlen(ack.GetRawData()) + 1, 0, (struct sockaddr *)&serverAddress, sizeof(struct sockaddr));
+
+    std::cout << "Sent ack to server" << std::endl;
 }
 
 Packet Client::ReceiveFileFromServer(void) {
