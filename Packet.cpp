@@ -66,7 +66,7 @@ Packet::~Packet()
 char * Packet::GetRawData()
 {
     // Return a new copy of the packet data.
-    char * lReturnData = (char *)malloc(mNumDataBytes + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    char * lReturnData = (char *)malloc(this->GetSize());
     char * lTemp = lReturnData;
 
     memcpy(lTemp, &mID, sizeof(uint32_t));
@@ -78,6 +78,11 @@ char * Packet::GetRawData()
     memcpy(lTemp, mData, mNumDataBytes);
 
     return lReturnData;
+}
+
+size_t Packet::GetSize()
+{
+    return mNumDataBytes + sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t);
 }
 
 void Packet::clear()

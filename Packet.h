@@ -27,6 +27,8 @@ public:
 
     // Getters
     char * GetRawData();
+    size_t GetSize();
+    uint16_t GetID() { return mID; }
     const uint16_t getCheckSum() const { return mCheckSum; }
 
     const bool isAcked() const { return (mFlags & IS_ACKED) != 0; }
