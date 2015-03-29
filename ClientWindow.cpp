@@ -6,7 +6,7 @@ ClientWindow::ClientWindow(size_t size) {
     vip = 0;
 }
 
-void ClientWindow::GetSize(void) {
+size_t ClientWindow::GetSize(void) {
     return packets.size();
 }
 
