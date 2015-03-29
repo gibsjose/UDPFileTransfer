@@ -2,10 +2,30 @@
 
 void Client::Run(void) {
     CreateServerSocket();
+    RequestFileFromServer();
+
+    FILE * file = fopen(destination.c_str(), "ab");
+    if(file == NULL) {
+        std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
+        return;
+    }
+    Packet empty = Packet();
+    ClientWindow window = ClientWindow(5);
 
     while(true) {
-        RequestFileFromServer();
-        ReceiveFileFromServer();
+      Packet p;
+      p = ReceiveFileFromServer();
+      if(!p.isEmpty()) {
+        window.Push(p);
+      }
+      Packet pakPop;
+      while(!(pakPop = window.Pop()).isEmpty()) {
+        int bytesWritten = fwrite(pakPop.GetRawData(), 1, strlen(pakPop.GetRawData()), file);
+        if(bytesWritten != pakPop.GetSize()) {
+            std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
+        }
+        std::cout << "Successfully wrote file to \"" << destination << "\"" << std::endl;
+      }
     }
 }
 
@@ -67,7 +87,7 @@ void Client::RequestFileFromServer(void) {
     std::cout << "Requested: " << buffer << std::endl;
 }
 
-void Client::ReceiveFileFromServer(void) {
+Packet Client::ReceiveFileFromServer(void) {
     //1MB File buffer
     char buffer[1024 * 1024];
 
@@ -81,7 +101,8 @@ void Client::ReceiveFileFromServer(void) {
     if(n == 1) {
         if((unsigned char)buffer[0] == 0xEE) {
             std::cerr << "File \"" << filepath << "\" does not exist" << std::endl;
-            return;
+            Packet p = Packet();
+            return p;
         }
     }
 
@@ -89,19 +110,7 @@ void Client::ReceiveFileFromServer(void) {
     // std::cout << "File contents:" << std::endl;
     // std::cout << buffer << std::endl;
 
-    //Write to file
-    FILE * file = fopen(destination.c_str(), "wb");
+    Packet p = Packet(buffer, n);
 
-    if(file == NULL) {
-        std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
-        return;
-    }
-
-    int bytesWritten = fwrite(buffer, 1, n, file);
-
-    if(bytesWritten != n) {
-        std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
-    }
-
-    std::cout << "Successfully wrote file to \"" << destination << "\"" << std::endl;
+    return p;
 }
