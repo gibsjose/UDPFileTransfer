@@ -73,7 +73,9 @@ void Server::ReceiveRequestFromClient(void) {
 
 void Server::SendFileToClient(void) {
     //1MB File buffer
-    char buffer[1024 * 1024];
+
+    char buffer[960];
+    int packID = 0;
     int n = 0;
     unsigned int totalBytesRead;
 
@@ -97,19 +99,41 @@ void Server::SendFileToClient(void) {
     }
 
     //Read the data from the file into the buffer.
-    while(!feof(file)) {
-        int bytesRead = fread(buffer, 1, (1024 * 1024), file);
-        totalBytesRead += bytesRead;
+    while(true)) {
+        //Check if circular buffer full
+        //If not full...
+        //cdrom/if(packet = )
+        if(!window.IsFull() && !feof(file)) {
+            //Read 960 bytes at a time
+            int bytesRead = fread(buffer, 1, 960, file);
+            totalBytesRead += bytesRead;
 
-        if(bytesRead == 0) {
-            if(ferror(file)) {
-                std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
-                return;
-            } else {
-                //Done reading the file
-                break;
+
+            if(bytesRead == 0) {
+                if(ferror(file)) {
+                    std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
+                    return;
+                } else {
+                    //Done reading the file
+                    break;
+                }
             }
+        //Contruct a packet using the read in data
+        Packet pckt(&buffer, sizeof(buffer), packID++, 0);
+        //Push packet onto circular buffer
+        //window.push(pckt);
+        //Send the packet
+        n = sendto(sock, pckt.GetData(), pckt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+
+
+
         }
+        //Wait for acknowledgement from client
+        //if(window.)
+
+
+
+
     }
 
     //Close the file
