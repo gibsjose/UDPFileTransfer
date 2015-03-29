@@ -1,6 +1,7 @@
 #ifndef SERVERWINDOW_H
 #define SERVERWINDOW_H
 
+#include <iostream>
 #include <vector>
 
 #include "Packet.h"
@@ -9,7 +10,7 @@
 class ServerWindow {
 public:
     ServerWindow(size_t size);
-    void GetSize(void);
+    size_t GetSize(void);
     bool IsFull(void);
     bool IsEmpty(void);
     bool IsEmpty(uint32_t);
