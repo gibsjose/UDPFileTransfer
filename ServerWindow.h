@@ -10,6 +10,7 @@ class ServerWindow {
 public:
     ServerWindow(size_t size);
     void GetSize(void);
+    bool IsFull(void);
     bool IsEmpty(void);
     bool IsEmpty(uint32_t);
     void Clear(void);

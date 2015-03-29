@@ -10,6 +10,16 @@ size_t ServerWindow::GetSize(void) {
     return packets.size();
 }
 
+bool ServerWindow::IsFull(void) {
+    for(int i = 0; i < packets.size(); i++) {
+        if(packets.at(i).isEmpty()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool ServerWindow::IsEmpty(void) {
     for(int i = 0; i < packets.size(); i++) {
         if(!packets.at(i).isEmpty()) {
