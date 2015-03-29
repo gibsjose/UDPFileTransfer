@@ -29,6 +29,7 @@ public:
     char * GetRawData();
     size_t GetSize();
     uint16_t GetID() const { return mID; }
+    char * GetMData() const { return mData; }
     const uint16_t getCheckSum() const { return mCheckSum; }
 
     const bool isAcked() const { return (mFlags & IS_ACKED) != 0; }
@@ -37,6 +38,7 @@ public:
     const bool isEmpty() const { return mData == nullptr; }
 
     // Setters
+    void setId(uint32_t id) { mID = id; }
     void setIsAcked() { mFlags |= IS_ACKED; }
     void setAckPacket() { mFlags |= IS_ACK_PACKET; }
     void setLastPacket() { mFlags |= LAST_PACKET; }

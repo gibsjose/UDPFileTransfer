@@ -11,6 +11,9 @@
 #include <iostream>
 
 #include "StringUtilities.h"
+#include "Packet.h"
+#include "ClientWindow.h"
+
 
 class Client {
 public:
@@ -26,7 +29,8 @@ public:
 private:
     void CreateServerSocket(void);
     void RequestFileFromServer(void);
-    void ReceiveFileFromServer(void);
+    Packet ReceiveFileFromServer(void);
+    void SendAckToServer(uint32_t id);
 
     int sock;
     struct sockaddr_in serverAddress;
