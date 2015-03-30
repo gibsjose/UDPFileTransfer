@@ -1,5 +1,6 @@
 #include "Server.h"
 
+
 void Server::Run(void) {
     CreateClientSocket();
 
@@ -73,7 +74,7 @@ void Server::ReceiveRequestFromClient(void) {
 
 void Server::SendFileToClient(void) {
     //1MB File buffer
-
+    ServerWindow window(5);
     char buffer[960];
     int packID = 0;
     int n = 0;
@@ -99,11 +100,11 @@ void Server::SendFileToClient(void) {
     }
 
     //Read the data from the file into the buffer.
-    while(true)) {
+    while(true) {
         //Check if circular buffer full
         //If not full...
         //cdrom/if(packet = )
-        if(!window.IsFull() && !feof(file)) {
+        while(!window.IsFull() && !feof(file)) {    //Read until window full
             //Read 960 bytes at a time
             int bytesRead = fread(buffer, 1, 960, file);
             totalBytesRead += bytesRead;
@@ -118,23 +119,34 @@ void Server::SendFileToClient(void) {
                     break;
                 }
             }
-        //Contruct a packet using the read in data
-        Packet pckt(&buffer, sizeof(buffer), packID++, 0);
-        //Push packet onto circular buffer
-        //window.push(pckt);
-        //Send the packet
-        n = sendto(sock, pckt.GetData(), pckt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
-
-
-
+            //Contruct a packet using the read in data
+            Packet pckt((char *)buffer, sizeof(buffer), packID++, 0);
+            //Push packet onto circular buffer
+            window.Push(pckt);
         }
+
+
+        while(!window.IsEmpty()) {      //Send until buffer empty
+            Packet s_pkt = window.Pop();
+            n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+        }
+
+        if(feof(file)) {        //Break if end of file reached
+            break;
+        }
+        //Send the packet
+        //n = sendto(sock, pckt.GetData(), pckt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+
+
+
+    }
         //Wait for acknowledgement from client
         //if(window.)
 
 
 
 
-    }
+
 
     //Close the file
     fclose(file);

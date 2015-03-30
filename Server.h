@@ -10,6 +10,8 @@
 #include <iostream>
 
 #include "StringUtilities.h"
+#include "ServerWindow.h"
+#include "Packet.h"
 
 class Server {
 public:
