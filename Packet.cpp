@@ -87,11 +87,13 @@ size_t Packet::GetSize()
 
 void Packet::clear()
 {
-    if(mData != nullptr)
-    {
-        free(mData);
-        mData = NULL;
-    }
+    // if(mData != nullptr)
+    // {
+    //     std::cout << "PACKET CLEAR 1" << std::endl;
+    //     free(mData);
+    //     std::cout << "PACKET CLEAR 2" << std::endl;
+    //     mData = NULL;
+    // }
     mNumDataBytes = 0;
     mID = 0;
     mCheckSum = 0;

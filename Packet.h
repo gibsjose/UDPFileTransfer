@@ -2,7 +2,7 @@
 #define PACKET_H
 
 #include <stdint.h>
-
+#include <iostream>
 #include "Exception.h"
 
 
@@ -35,7 +35,7 @@ public:
     const bool isAcked() const { return (mFlags & IS_ACKED) != 0; }
     const bool isAckPacket() const { return (mFlags & IS_ACK_PACKET) != 0; }
     const bool isLastPacket() const { return (mFlags & LAST_PACKET) != 0; }
-    const bool isEmpty() const { return mData == nullptr; }
+    const bool isEmpty() const { return mNumDataBytes == 0; }
 
     // Setters
     void setId(uint32_t id) { mID = id; }

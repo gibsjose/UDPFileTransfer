@@ -104,11 +104,14 @@ void Server::SendFileToClient(void) {
         //Check if circular buffer full
         //If not full...
         //cdrom/if(packet = )
+        //std::string temp = window.IsFull() ? "True" : "False";
+        //std::cout << "Is the window full: " << temp << std::endl;
         while(!window.IsFull() && !feof(file)) {    //Read until window full
+        //    std::cout << "Is the window full: " << temp << std::endl;
             //Read 960 bytes at a time
             int bytesRead = fread(buffer, 1, 960, file);
             totalBytesRead += bytesRead;
-
+            std::cout <<"--------- TOTAL BYTES READ: " << totalBytesRead << std::endl;
 
             if(bytesRead == 0) {
                 if(ferror(file)) {
@@ -119,16 +122,20 @@ void Server::SendFileToClient(void) {
                     break;
                 }
             }
+
             //Contruct a packet using the read in data
             Packet pckt((char *)buffer, sizeof(buffer), packID++, 0);
+
             //Push packet onto circular buffer
             window.Push(pckt);
+
         }
 
 
         while(!window.IsEmpty()) {      //Send until buffer empty
             Packet s_pkt = window.Pop();
             n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+            std::cout << "Sent packet" << std::endl;
         }
 
         if(feof(file)) {        //Break if end of file reached
@@ -154,12 +161,12 @@ void Server::SendFileToClient(void) {
     std::cout << "Read " << totalBytesRead << " bytes from file" << std::endl;
 
     //Send file
-    n = sendto(sock, buffer, totalBytesRead, 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+//    n = sendto(sock, &buffer, totalBytesRead, 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
 
-    if(n < 0) {
-        std::cerr << "Error sending file to client: " << strerror(errno) << std::endl;
-        return;
-    }
+    // if(n < 0) {
+    //     std::cerr << "Error sending file to client: " << strerror(errno) << std::endl;
+    //     return;
+    // }
 
-    std::cout << "Sent " << n << " bytes to client" << std::endl;
+    // std::cout << "Sent " << n << " bytes to client" << std::endl;
 }
