@@ -13,24 +13,26 @@ void Client::Run(void) {
     ClientWindow window = ClientWindow(5);
 
     while(true) {
+      std::vector<Packet> packets = ReceiveFileFromServer();
+
       Packet p;
-      p = ReceiveFileFromServer();
-
-
       //TODO verify checksum
+      while(!packets.empty()) {
+        p = packets.back();
+        packets.pop_back();
 
-
-      SendAckToServer(p.GetID());
-      if(!p.isEmpty()) {
-        window.Push(p);
-      }
-      Packet pakPop;
-      while(!(pakPop = window.Pop()).isEmpty()) {
-        int bytesWritten = fwrite(pakPop.GetMData(), 1, strlen(pakPop.GetMData()), file);
-        if(bytesWritten != pakPop.GetSize()) {
-            std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
+        SendAckToServer(p.GetID());
+        if(!p.isEmpty()) {
+          window.Push(p);
         }
-        std::cout << "Successfully wrote file to \"" << destination << "\"" << std::endl;
+        Packet pakPop;
+        while(!(pakPop = window.Pop()).isEmpty()) {
+          int bytesWritten = fwrite(pakPop.GetMData(), 1, strlen(pakPop.GetMData()), file);
+          if(bytesWritten != pakPop.GetSize()) {
+              std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
+          }
+          std::cout << "Successfully wrote file to \"" << destination << "\"" << std::endl;
+        }
       }
     }
 }
@@ -108,9 +110,10 @@ void Client::SendAckToServer(uint32_t id) {
     std::cout << "Sent ack to server" << std::endl;
 }
 
-Packet Client::ReceiveFileFromServer(void) {
-    //1MB File buffer
-    char buffer[1024 * 1024];
+std::vector<Packet> Client::ReceiveFileFromServer(void) {
+    int bufferSpot = 1024;
+    //5MB File buffer
+    char buffer[1024 * 5];
 
     unsigned int len = sizeof(struct sockaddr);
     int n = recvfrom(sock, buffer, (1024 * 1024), 0, (struct sockaddr *)&serverAddress, &len);
@@ -118,20 +121,34 @@ Packet Client::ReceiveFileFromServer(void) {
     if(n < 0) {
         std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
     }
-
+    std::vector<Packet> packets;
     if(n == 1) {
         if((unsigned char)buffer[0] == 0xEE) {
             std::cerr << "File \"" << filepath << "\" does not exist" << std::endl;
-            Packet p = Packet();
-            return p;
+            return packets;
         }
+    }
+
+    Packet p;
+    //Need to fix so it add p1, p2, p3, p4, p5
+    if(strlen(buffer) >= bufferSpot) {
+      p = Packet(substr(buffer, bufferSpot - 1024, 1024), 1024);
+      bufferSpot += 1024;
+      packets.push_back(p);
     }
 
     std::cout << "Received " << n << " bytes from server" << std::endl;
     // std::cout << "File contents:" << std::endl;
     // std::cout << buffer << std::endl;
 
-    Packet p = Packet(buffer, n);
+    return packets;
+}
 
-    return p;
+char* Client::substr(char* arr, int begin, int len)
+{
+    char* res = new char[len];
+    for (int i = 0; i < len; i++)
+        res[i] = *(arr + begin + i);
+    res[len] = 0;
+    return res;
 }

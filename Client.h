@@ -25,11 +25,12 @@ public:
     }
 
     void Run(void);
+    char* substr(char* arr, int begin, int len);
 
 private:
     void CreateServerSocket(void);
     void RequestFileFromServer(void);
-    Packet ReceiveFileFromServer(void);
+    std::vector<Packet> ReceiveFileFromServer(void);
     void SendAckToServer(uint32_t id);
 
     int sock;
