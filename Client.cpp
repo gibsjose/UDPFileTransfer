@@ -13,10 +13,12 @@ void Client::Run(void) {
     ClientWindow window = ClientWindow(5);
 
     while(true) {
+      //recieve a vector of up to 5 packets from the server
       std::vector<Packet> packets = ReceiveFileFromServer();
 
       Packet p;
       //TODO verify checksum
+      //Take a packet one at a time and place into window
       while(!packets.empty()) {
         p = packets.back();
         packets.pop_back();
@@ -26,7 +28,9 @@ void Client::Run(void) {
           window.Push(p);
         }
         Packet pakPop;
+        //If we can pop from window we do until we cannot anymore
         while(!(pakPop = window.Pop()).isEmpty()) {
+          //Write the packets that we pop from the window to the file
           int bytesWritten = fwrite(pakPop.GetMData(), 1, strlen(pakPop.GetMData()), file);
           if(bytesWritten != pakPop.GetSize()) {
               std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
