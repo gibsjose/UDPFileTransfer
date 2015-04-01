@@ -46,13 +46,13 @@ void Client::Run(void) {
                         while(!(packet = window.Pop()).isEmpty()) {
                             //Write the file to the packet
                             file.write(packet.GetData(), packet.GetDataSize());
-
-                            //Check if it is the last packet
-                            if(packet.isLastPacket()) {
-                                finished = true;
-                                break;
-                            }
                         }
+                    }
+
+                    //Check if it is the last packet
+                    if(packets.at(i).isLastPacket()) {
+                        finished = true;
+                        break;
                     }
                 }
             }
@@ -153,15 +153,14 @@ std::vector<Packet> Client::GetPacketsFromServer(void) {
             }
         }
         else if(n == 0) {
-            //No more data, so return the packets
-            std::cout << "No more packets..." << std::endl;
+            //Server has shut down
+            std::cout << "Server has shut down..." << std::endl;
             return packets;
         }
-        else
-        {
+        else {
             std::cout << "Creating packet..." << std::endl;
-            Packet lPacket(buffer, n);
-            packets.push_back(lPacket);
+            Packet packet(buffer, n);
+            packets.push_back(packet);
         }
     }
 }
