@@ -2,58 +2,63 @@
 
 void Client::Run(void) {
     CreateServerSocket();
-    RequestFileFromServer();
 
-    Packet empty = Packet();
-    ClientWindow window = ClientWindow(5);
+    //Request files from the server
+    while(true) {
+        RequestFileFromServer();
 
-    std::ofstream file(this->destination, std::ofstream::binary);
+        Packet empty = Packet();
+        ClientWindow window = ClientWindow(5);
 
-    //Check if file is open
-    if(!file.is_open()) {
-        std::cerr << "Could not open destination file: " << this->destination << "\n" << std::endl;
-        exit(-1);
-    }
+        std::ofstream file(this->destination, std::ofstream::binary);
 
-    //File is open
-    else {
-        bool finished = false;
+        //Check if file is open
+        if(!file.is_open()) {
+            std::cerr << "Could not open destination file: " << this->destination << "\n" << std::endl;
+            exit(-1);
+        }
 
-        //Declare window of size 5 for the client
-        ClientWindow window(5);
-        Packet packet;
+        //File is open
+        else {
+            bool finished = false;
 
-        while(!finished) {
+            //Declare window of size 5 for the client
+            ClientWindow window(5);
+            Packet packet;
 
-            //Recieve a vector of up to 5 packets from the server
-            std::vector<Packet> packets = GetPacketsFromServer();
+            //Loop until we get the last packet
+            while(!finished) {
 
-            for(size_t i = 0; i < packets.size(); i++) {
+                //Recieve a vector of up to 5 packets from the server
+                std::vector<Packet> packets = GetPacketsFromServer();
 
-                //Compute checksum on packet before we push it and send ACK
-                if(packets.at(i).CompareChecksum(packets.at(i).GetChecksum())) {
-                    //Push the packet to the window
-                    window.Push(packets.at(i));
+                for(size_t i = 0; i < packets.size(); i++) {
 
-                    //Send an ACK to the server
-                    SendAckToServer(packets.at(i).GetID());
+                    //Compute checksum on packet before we push it and send ACK
+                    if(packets.at(i).CompareChecksum(packets.at(i).GetChecksum())) {
+                        //Push the packet to the window
+                        window.Push(packets.at(i));
 
-                    //Try to pop and write as many packets as we can
-                    while(!(packet = window.Pop()).isEmpty()) {
-                        //Write the file to the packet
-                        file.write(packet.GetData(), packet.GetDataSize());
+                        //Send an ACK to the server
+                        SendAckToServer(packets.at(i).GetID());
 
-                        //Check if it is the last packet
-                        if(packet.isLastPacket()) {
-                            finished = true;
-                            break;
+                        //Try to pop and write as many packets as we can
+                        while(!(packet = window.Pop()).isEmpty()) {
+                            //Write the file to the packet
+                            file.write(packet.GetData(), packet.GetDataSize());
+
+                            //Check if it is the last packet
+                            if(packet.isLastPacket()) {
+                                finished = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
-        }
 
-        file.close();
+            file.close();
+        }
     }
 }
 
