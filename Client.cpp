@@ -35,7 +35,7 @@ void Client::Run(void) {
           //Write the packets that we pop from the window to the file
           std::cout << "About to write" << std::endl;
           std::string temp = std::string(pakPop.GetMData(), strlen(pakPop.GetMData()));
-          std::cout << pakPop.GetMData() << std::endl;
+          std::cout << temp << std::endl;
           int bytesWritten = fwrite(pakPop.GetMData(), 1, strlen(pakPop.GetMData()), file);
           if(bytesWritten != pakPop.GetSize()) {
               std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
@@ -127,9 +127,9 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
     char buffer[1024 * 5];
 
     unsigned int len = sizeof(struct sockaddr);
-    int n = recvfrom(sock, buffer, (1024 * 1024), 0, (struct sockaddr *)&serverAddress, &len);
+    int n = recvfrom(sock, buffer, 1024, 0, (struct sockaddr *)&serverAddress, &len);
     std::cout << "receved" << std::endl;
-    std::cout << buffer << std::endl;
+    std::cout << strlen(buffer) << std::endl;
     std::cout << "after print" << std::endl;
     // Packet temp = Packet(buffer, strlen(buffer));
     // std::cout << "This size" << temp.GetSize() << std::endl;
