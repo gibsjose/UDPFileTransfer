@@ -112,6 +112,11 @@ void Server::SendFileToClient(std::string aFilePath) {
             // along with this code to mark individual packets as ACKed.  These packets that are marked as ACKed will then be
             // considered empty slots in the sliding window that can be filled in with new packets created from new file data.
 
+            // get length of file:
+            lFileStream.seekg (0, lFileStream.end);
+            int lFileLength = lFileStream.tellg();
+            lFileStream.seekg (0, lFileStream.beg);
+
             bool lFinished = false; // Mark if finished handling the entire file request (read, send, acks).
             bool lFinishedReading = false;  // Mark if finished reading from the file.
             bool lFirst = true;
@@ -126,7 +131,7 @@ void Server::SendFileToClient(std::string aFilePath) {
                         if(!lFirst)
                         {
                             //Contruct a packet using the read in data
-                            Packet pckt((char *)buffer, bytesRead, packID++, 0);
+                            Packet pckt(buffer, bytesRead, packID++, 0);
 
                             // If this is the end, mark the packet as such.
                             if(lFinishedReading)
@@ -170,6 +175,12 @@ void Server::SendFileToClient(std::string aFilePath) {
                                 // No more data to read.
                                 std::cout << "No more data to read." << std::endl;
                                 lFinishedReading = true;
+                            }
+
+                            // If the current location in the file is at the end, this is the end.  Boom.
+                            if(!lFinishedReading)
+                            {
+                                lFinishedReading = lFileLength == lFileStream.tellg();
                             }
                         }
                     }
