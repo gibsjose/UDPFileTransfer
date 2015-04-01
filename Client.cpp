@@ -77,7 +77,7 @@ void Client::CreateServerSocket(void) {
     //  option we want (SO_RCVTIMEO = Receive timeout)
     //  timeout structure
     //  size of structure
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof(to));
+    //setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof(to));
 
     //Socket error
     if(sock < 0) {
