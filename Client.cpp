@@ -146,7 +146,7 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
     while(n > 0) {
       Packet p;
       if(n > 1024) {
-        P = Packet(substr(buffer, tempn, 1024), 1024);
+        p = Packet(substr(buffer, tempn, 1024), 1024);
         tempn += 1024;
       } else {
         p = Packet(substr(buffer, tempn, n), n);
