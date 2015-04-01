@@ -138,9 +138,9 @@ std::vector<Packet> Client::GetPacketsFromServer(void) {
     char buffer[PACKET_SIZE];
     unsigned int len = sizeof(struct sockaddr);
 
-    while(true)
-    {
-        int n = recvfrom(sock, buffer, PACKET_SIZE, 0, (struct sockaddr *)&serverAddress, &len);
+    while(true) {
+        //Non-blocking receive
+        int n = recvfrom(sock, buffer, PACKET_SIZE, MSG_DONTWAIT, (struct sockaddr *)&serverAddress, &len);
 
         if(n < 0) {
             std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
@@ -152,9 +152,8 @@ std::vector<Packet> Client::GetPacketsFromServer(void) {
                 return packets;
             }
         }
-        else if(n == 0)
-        {
-            // no more data, so return the packets
+        else if(n == 0) {
+            //No more data, so return the packets
             std::cout << "No more packets..." << std::endl;
             return packets;
         }
