@@ -48,6 +48,34 @@ void ServerWindow::Clear(void) {
     }
 }
 
+void ServerWindow::AckPacketWithID(uint16_t aID)
+{
+    bool lFound = false;
+    for(size_t i = 0; i < packets.size(); i++)
+    {
+        if(packets[i].GetID() == aID)
+        {
+            //packets[i].setIsAcked();
+            packets[i].clear();
+            lFound = true;
+
+            // If the packet that was ACKed was at the start of the window,
+            // advance the start index.
+            while(packets[mStart].isEmpty() && mStart != mEnd){
+                mStart = (mStart + 1) % packets.size();
+                std::cout << "Moved start to " << mStart << std::endl;;
+            }
+
+            break;
+        }
+    }
+    if(!lFound)
+    {
+        throw new GeneralException("Could not set the packet as acked since it is not in the window. ID: "
+                                    + std::to_string(aID));
+    }
+}
+
 void ServerWindow::Push(const Packet & packet) {
     if(this->IsFull())
     {

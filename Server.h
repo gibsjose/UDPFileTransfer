@@ -10,6 +10,7 @@
 
 #include <iostream>
 
+#include "Globals.h"
 #include "StringUtilities.h"
 #include "ServerWindow.h"
 #include "Packet.h"
