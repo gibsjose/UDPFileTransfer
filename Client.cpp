@@ -129,10 +129,9 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
     unsigned int len = sizeof(struct sockaddr);
     int n = recvfrom(sock, buffer, 1024, 0, (struct sockaddr *)&serverAddress, &len);
     std::cout << "receved" << std::endl;
-    std::cout << strlen(buffer) << std::endl;
+    std::cout << std::string(buffer, n) << std::endl;
     std::cout << "after print" << std::endl;
-    // Packet temp = Packet(buffer, strlen(buffer));
-    // std::cout << "This size" << temp.GetSize() << std::endl;
+
     if(n < 0) {
         std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
     }
@@ -145,23 +144,11 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
     }
 
 
-    Packet p;
-    //Need to fix so it add p1, p2, p3, p4, p5
-    // p = Packet(substr(buffer, bufferSpot - 1024, 1024), 1024);
-    // packets.push_back(p);
-    // if(strlen(buffer) > bufferSpot) {
-    //   bufferSpot += 1024;
-    //   p = Packet(substr(buffer, bufferSpot - 1024, 1024), 1024);
-    //   packets.push_back(p);
-    // }
-    size_t len_t = strlen(buffer);
-    p = Packet(buffer, len_t);
+    Packet p = Packet(buffer, n);
     std::cout << "Into Packet" << std::endl;
     packets.push_back(p);
     std::cout << "Received " << n << " bytes from server" << std::endl;
-    // std::cout << "File contents:" << std::endl;
-    // std::cout << buffer << std::endl;
-
+    
     return packets;
 }
 
