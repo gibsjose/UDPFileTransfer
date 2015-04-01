@@ -16,6 +16,7 @@ public:
     bool IsEmpty(uint32_t);
     void Clear(void);
     void Push(const Packet & value);
+    Packet Peek(void);
     Packet Pop(void);
 
 private:

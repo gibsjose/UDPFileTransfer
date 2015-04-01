@@ -14,7 +14,7 @@ size_t ServerWindow::GetSize(void) {
 bool ServerWindow::IsFull(void) {
     for(int i = 0; i < packets.size(); i++) {
         if(packets.at(i).isEmpty()) {
-            std::cout << "Packet " << i << "is empty" << std::endl;
+            //std::cout << "Packet " << i << " is empty" << std::endl;
             return false;
         }
     }
@@ -58,6 +58,11 @@ void ServerWindow::Push(const Packet & packet) {
     }
     packets[index] = packet;
     std::cout << "Packets size: " << packets.size() << std::endl;
+}
+
+Packet ServerWindow::Peek(void) {
+    Packet packet = packets.at(vip);
+    return packet;
 }
 
 //Returns the VIP each time, only sliding forward if the VIP is not empty

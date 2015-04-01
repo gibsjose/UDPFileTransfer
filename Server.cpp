@@ -110,6 +110,7 @@ void Server::SendFileToClient(void) {
         //    std::cout << "Is the window full: " << temp << std::endl;
             //Read 960 bytes at a time
             int bytesRead = fread(buffer, 1, 960, file);
+            //std::cout << buffer << std::endl;
             totalBytesRead += bytesRead;
             std::cout <<"--------- TOTAL BYTES READ: " << totalBytesRead << std::endl;
 
@@ -133,9 +134,14 @@ void Server::SendFileToClient(void) {
 
 
         while(!window.IsEmpty()) {      //Send until buffer empty
-            Packet s_pkt = window.Pop();
+            Packet s_pkt = window.Peek();
+            //char* test = s_pkt.GetRawData();
+            //for(int i = 0; i < s_pkt.GetSize(); i++) {
+            //    printf("%c", test[i]);
+            //}
             n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
             std::cout << "Sent packet" << std::endl;
+            window.Pop();
         }
 
         if(feof(file)) {        //Break if end of file reached

@@ -57,7 +57,7 @@ Packet::~Packet()
 {
     if(mData != nullptr)
     {
-        free(mData);
+        // free(mData);
         mData = NULL;
     }
     mNumDataBytes = 0;
@@ -90,7 +90,7 @@ void Packet::clear()
     // if(mData != nullptr)
     // {
     //     std::cout << "PACKET CLEAR 1" << std::endl;
-    //     free(mData);
+    //     //free(mData);
     //     std::cout << "PACKET CLEAR 2" << std::endl;
     //     mData = NULL;
     // }
