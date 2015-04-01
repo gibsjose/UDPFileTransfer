@@ -4,11 +4,10 @@ void Client::Run(void) {
     CreateServerSocket();
     RequestFileFromServer();
 
-    FILE * file = fopen(destination.c_str(), "ab");
-    if(file == NULL) {
-        std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
-        return;
-    }
+    // if(file == NULL) {
+    //     std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
+    //     return;
+    // }
     Packet empty = Packet();
     ClientWindow window = ClientWindow(5);
 
@@ -17,9 +16,12 @@ void Client::Run(void) {
       std::vector<Packet> packets = ReceiveFileFromServer();
 
       Packet p;
+      std::cout << "dude" << std::endl;
       //TODO verify checksum
       //Take a packet one at a time and place into window
       while(!packets.empty()) {
+        std::cout << "in while" << std::endl;
+        FILE * file = fopen(destination.c_str(), "ab");
         p = packets.back();
         packets.pop_back();
 
@@ -31,6 +33,8 @@ void Client::Run(void) {
         //If we can pop from window we do until we cannot anymore
         while(!(pakPop = window.Pop()).isEmpty()) {
           //Write the packets that we pop from the window to the file
+          std::cout << "About to write" << std::endl;
+          std::cout << pakPop.GetMData() << std::endl;
           int bytesWritten = fwrite(pakPop.GetMData(), 1, strlen(pakPop.GetMData()), file);
           if(bytesWritten != pakPop.GetSize()) {
               std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
@@ -115,13 +119,19 @@ void Client::SendAckToServer(uint32_t id) {
 }
 
 std::vector<Packet> Client::ReceiveFileFromServer(void) {
+    std::cout << "Were here" << std::endl;
+
     int bufferSpot = 1024;
     //5MB File buffer
     char buffer[1024 * 5];
 
     unsigned int len = sizeof(struct sockaddr);
     int n = recvfrom(sock, buffer, (1024 * 1024), 0, (struct sockaddr *)&serverAddress, &len);
-
+    std::cout << "receved" << std::endl;
+    std::cout << buffer << std::endl;
+    std::cout << "after print" << std::endl;
+    // Packet temp = Packet(buffer, strlen(buffer));
+    // std::cout << "This size" << temp.GetSize() << std::endl;
     if(n < 0) {
         std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
     }
@@ -133,14 +143,19 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
         }
     }
 
+
     Packet p;
     //Need to fix so it add p1, p2, p3, p4, p5
-    if(strlen(buffer) >= bufferSpot) {
-      p = Packet(substr(buffer, bufferSpot - 1024, 1024), 1024);
-      bufferSpot += 1024;
-      packets.push_back(p);
-    }
-
+    // p = Packet(substr(buffer, bufferSpot - 1024, 1024), 1024);
+    // packets.push_back(p);
+    // if(strlen(buffer) > bufferSpot) {
+    //   bufferSpot += 1024;
+    //   p = Packet(substr(buffer, bufferSpot - 1024, 1024), 1024);
+    //   packets.push_back(p);
+    // }
+    p = Packet(buffer, strlen(buffer));
+    std::cout << "Into Packet" << std::endl;
+    packets.push_back(p);
     std::cout << "Received " << n << " bytes from server" << std::endl;
     // std::cout << "File contents:" << std::endl;
     // std::cout << buffer << std::endl;
