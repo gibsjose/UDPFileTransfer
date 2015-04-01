@@ -123,7 +123,7 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
     std::cout << "Were here" << std::endl;
 
     //5MB File buffer
-    char buffer[1024 * 5];
+    char buffer[986 * 5];
 
     unsigned int len = sizeof(struct sockaddr);
     int n = recvfrom(sock, buffer, 1024, 0, (struct sockaddr *)&serverAddress, &len);
@@ -142,17 +142,17 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
         }
     }
     int tempn = 0;
-    int num = 1024;
+    int num = 986;
     while(n > 0) {
       Packet p;
-      if(n > 1024) {
-        p = Packet(substr(buffer, tempn, 1024), 1024);
-        tempn += 1024;
+      if(n > 986) {
+        p = Packet(substr(buffer, tempn, 986), 986);
+        tempn += 986;
       } else {
         p = Packet(substr(buffer, tempn, n), n);
       }
       packets.push_back(p);
-      n -= 1024;
+      n -= 986;
     }
 
     return packets;
