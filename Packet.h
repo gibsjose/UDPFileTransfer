@@ -1,6 +1,7 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#include <bitset>
 #include <stdint.h>
 #include <iostream>
 #include "Exception.h"
@@ -30,12 +31,15 @@ public:
     size_t GetSize();
     uint16_t GetID() const { return mID; }
     char * GetMData() const { return mData; }
+    size_t GetMDataSize() const { return mNumDataBytes; }
     const uint16_t getCheckSum() const { return mCheckSum; }
 
     const bool isAcked() const { return (mFlags & IS_ACKED) != 0; }
     const bool isAckPacket() const { return (mFlags & IS_ACK_PACKET) != 0; }
     const bool isLastPacket() const { return (mFlags & LAST_PACKET) != 0; }
     const bool isEmpty() const { return mData == NULL; }
+
+    void Print() const;
 
     // Setters
     void setId(uint32_t id) { mID = id; }

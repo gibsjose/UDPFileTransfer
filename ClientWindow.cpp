@@ -2,7 +2,6 @@
 
 ClientWindow::ClientWindow(size_t size) {
     packets.resize(size);
-    packets.clear();
     vip = 0;
 }
 

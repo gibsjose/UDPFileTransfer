@@ -24,7 +24,7 @@ Packet::Packet(char * aRawData, size_t aNumBytes)
 
     size_t lDataNumBytes = aNumBytes - (sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t));
     mData = (char *)malloc(lDataNumBytes);
-    memcpy(&mData, p, lDataNumBytes);
+    memcpy(mData, p, lDataNumBytes);
     mNumDataBytes = lDataNumBytes;
 }
 
@@ -61,6 +61,17 @@ Packet::~Packet()
         mData = NULL;
     }
     mNumDataBytes = 0;
+}
+
+void Packet::Print() const
+{
+    std::cout << "Packet: " << std::endl;
+    std::cout << "\tID: " << this->mID << std::endl;
+    std::cout << "\tChecksum: " << this->mCheckSum << std::endl;
+    std::cout << "\tFlags: " << std::bitset<16>(this->mFlags) << std::endl;
+    std::cout << "\tLength of data: " << this->mNumDataBytes << std::endl;
+
+    std::cout << "\t isLastPacket(): " << this->isLastPacket() << std::endl;
 }
 
 char * Packet::GetRawData()

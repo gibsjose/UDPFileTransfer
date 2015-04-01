@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <fstream>
 #include <iostream>
 
 #include "StringUtilities.h"
