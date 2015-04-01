@@ -58,6 +58,14 @@ void ServerWindow::AckPacketWithID(uint16_t aID)
             //packets[i].setIsAcked();
             packets[i].clear();
             lFound = true;
+
+            // If the packet that was ACKed was at the start of the window,
+            // advance the start index.
+            while(packets[mStart].isEmpty() && mStart != mEnd){
+                mStart = (mStart + 1) % packets.size();
+                std::cout << "Moved start to " << mStart << std::endl;;
+            }
+
             break;
         }
     }

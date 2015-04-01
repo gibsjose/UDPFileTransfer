@@ -16,8 +16,8 @@ void Server::CreateClientSocket(void) {
 
     //Create timeval struct
     struct timeval to;
-    to.tv_sec = 10;
-    to.tv_usec = 0;
+    to.tv_sec = 0;
+    to.tv_usec = 100;
 
     //Make socket only wait for 5 seconds w/ setsockopt
     //  socket descriptor
@@ -76,10 +76,11 @@ void Server::ReceiveRequestFromClient(void) {
 void Server::SendFileToClient(void) {
     ServerWindow window(5); // sliding window
 
-    char buffer[960];   // file buffer
+    char buffer[PACKET_SIZE];   // file buffer
     int packID = 0;     // starting packet ID (sequence number)
     int n = 0;
     unsigned int totalBytesRead = 0;
+    unsigned int len = sizeof(struct sockaddr);
 
     if(filepath.empty())
     {
@@ -115,7 +116,7 @@ void Server::SendFileToClient(void) {
             while(!lFinished) {
                 while(!window.IsFull()) {    //Read until window full
                     //Read 960 bytes at a time
-                    int bytesRead = lFileStream.readsome(buffer, 960);
+                    int bytesRead = lFileStream.readsome(buffer, PACKET_DATA_SIZE);
                     totalBytesRead += bytesRead;
 
                     if(lFileStream.bad()) {
@@ -137,23 +138,42 @@ void Server::SendFileToClient(void) {
                     //Contruct a packet using the read in data
                     Packet pckt((char *)buffer, bytesRead, packID++, 0);
 
-                    std::cout << "Bytes read: " << bytesRead << std::endl;
+                    // If this is the end, mark the packet as such.
+                    if(lFinished)
+                    {
+                        pckt.setLastPacket();
+                    }
 
-                    //Push packet onto circular buffer
-                    std::cout << "Pushing packet with ID=" << packID - 1 << std::endl;
+                    // Send the packet
+                    std::cout << "Sending packet with ID=" << s_pkt.GetID() << std::endl;
+
+                    n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0,
+                                (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+
+                    //Push packet onto the server window.
                     window.Push(pckt);
                 }
 
-                while(!window.IsEmpty()) {      //Send until buffer empty
-                    Packet s_pkt = window.Pop();
-                    std::cout << "Sending packet with ID=" << s_pkt.GetID() << std::endl;
-                    std::cout << "Window packet count: " << window.GetPacketCount() << std::endl;
-                    if(lFinished && window.IsEmpty())
-                    {
-                        s_pkt.setLastPacket();
-                        std::cout << "Setting last packet with ID: " << s_pkt.GetID() << std::endl;
+                // Resend packets that have timed out.
+
+
+                // Receive ACKs if they come back from the client and mark the corresponding packets that were
+                // sent as ACKed.
+                while(true)
+                {
+                    int n = recvfrom(sock, buffer, PACKET_SIZE, 0, (struct sockaddr *)&serverAddress, &len);
+                    if(n <= 0) {
+                        std::cerr << "Error?: " << strerror(errno) << std::endl;
+                        break;
                     }
-                    n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+                    else
+                    {
+                        Packet lPacket(buffer, n);
+                        if(lPacket.isAckPacket())
+                        {
+                            window.AckPacketWithID(lPacket.GetID());
+                        }
+                    }
                 }
             }
 
