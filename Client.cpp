@@ -66,19 +66,6 @@ void Client::CreateServerSocket(void) {
     //Create the socket
     sock = socket(AF_INET, SOCK_DGRAM, 0);
 
-    //Create timeval struct
-    struct timeval to;
-    to.tv_sec = 1;
-    to.tv_usec = 0;
-
-    //Make socket only wait for 10 seconds w/ setsockopt
-    //  socket descriptor
-    //  socket level (internet sockets, local sockets, etc.)
-    //  option we want (SO_RCVTIMEO = Receive timeout)
-    //  timeout structure
-    //  size of structure
-    //setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof(to));
-
     //Socket error
     if(sock < 0) {
         std::cerr << "Error creating socket: " << strerror(errno) << std::endl;
