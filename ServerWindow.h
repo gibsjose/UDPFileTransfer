@@ -11,6 +11,7 @@ class ServerWindow {
 public:
     ServerWindow(size_t size);
     size_t GetSize(void);
+    size_t GetPacketCount(void);
     bool IsFull(void);
     bool IsEmpty(void);
     bool IsEmpty(uint32_t);
@@ -21,7 +22,7 @@ public:
 
 private:
     std::vector<Packet> packets;    //Packets, yay...
-    uint32_t vip;                   //Very Important Packet
+    int mStart, mEnd;
 };
 
 #endif//SERVERWINDOW_H

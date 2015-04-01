@@ -59,6 +59,7 @@ void Server::ReceiveRequestFromClient(void) {
         //Ignore 'temporarily unreachable...'
         if(errno != 35) {
             std::cout << std::endl;
+            std::cerr << errno << std::endl;
             std::cerr << "Error receiving request from client: " << strerror(errno) << std::endl;
         }
 
@@ -73,106 +74,94 @@ void Server::ReceiveRequestFromClient(void) {
 }
 
 void Server::SendFileToClient(void) {
-    //1MB File buffer
-    ServerWindow window(5);
-    char buffer[960];
-    int packID = 0;
+    ServerWindow window(5); // sliding window
+
+    char buffer[960];   // file buffer
+    int packID = 0;     // starting packet ID (sequence number)
     int n = 0;
-    unsigned int totalBytesRead;
+    unsigned int totalBytesRead = 0;
 
-    if(filepath.empty()) {
+    if(filepath.empty())
+    {
+        std::cerr << "Error: file path is empty!" << std::endl;
         return;
     }
+    else
+    {
+        //Attempt to open the file pointed to by the file path.
+        // FILE * file = fopen(filepath.c_str(), "rb");
+        std::ifstream lFileStream(filepath.c_str(), std::ifstream::binary);
 
-    //Attempt to open the file pointed to by the file path.
-    FILE * file = fopen(filepath.c_str(), "rb");
+        if(!lFileStream) {
+            std::cerr << "Error: File could not be served: " << strerror(errno) << std::endl;
 
-    if(file == NULL) {
-        std::cerr << "Error: File could not be served: " << strerror(errno) << std::endl;
+            char err = 0xEE;
 
-        char err = 0xEE;
+            //Send message to client indicating file does not exist
+            n = sendto(sock, &err, 1, 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
 
-        //Send message to client indicating file does not exist
-        n = sendto(sock, &err, 1, 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+            std::cout << "File does not exist; notified client" << std::endl;
+            return;
+        }
+        else
+        {
+            // For now, just read in the file until the window is full, send everything in the window and empty it, and repeat
+            // until the file is all sent.  We will implement ACKing soon, and then the ServerWindow class has to be changed
+            // along with this code to mark individual packets as ACKed.  These packets that are marked as ACKed will then be
+            // considered empty slots in the sliding window that can be filled in with new packets created from new file data.
 
-        std::cout << "File does not exist; notified client" << std::endl;
-        return;
-    }
+            bool lFinished = false; // Mark if finished reading from the file.
 
-    //Read the data from the file into the buffer.
-    while(true) {
-        //Check if circular buffer full
-        //If not full...
-        //cdrom/if(packet = )
-        //std::string temp = window.IsFull() ? "True" : "False";
-        //std::cout << "Is the window full: " << temp << std::endl;
-        while(!window.IsFull() && !feof(file)) {    //Read until window full
-        //    std::cout << "Is the window full: " << temp << std::endl;
-            //Read 960 bytes at a time
-            int bytesRead = fread(buffer, 1, 960, file);
-            //std::cout << buffer << std::endl;
-            totalBytesRead += bytesRead;
-            std::cout <<"--------- TOTAL BYTES READ: " << totalBytesRead << std::endl;
+            while(!lFinished) {
+                while(!window.IsFull()) {    //Read until window full
+                    //Read 960 bytes at a time
+                    int bytesRead = lFileStream.readsome(buffer, 960);
+                    totalBytesRead += bytesRead;
 
-            if(bytesRead == 0) {
-                if(ferror(file)) {
-                    std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
-                    return;
-                } else {
-                    //Done reading the file
-                    break;
+                    if(lFileStream.bad()) {
+                        std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
+                        return;
+                    } else if(lFileStream.eof()) {
+                        //Done reading the file
+                        std::cout << "Done reading the file." << std::endl;
+                        lFinished = true;
+                        break;
+                    }
+                    else if(bytesRead == 0)
+                    {
+                        // No more data to read.
+                        lFinished = true;
+                        break;
+                    }
+
+                    //Contruct a packet using the read in data
+                    Packet pckt((char *)buffer, bytesRead, packID++, 0);
+
+                    std::cout << "Bytes read: " << bytesRead << std::endl;
+
+                    if(bytesRead < 959)
+                    {
+                        std::cout << "Last packet..." << std::endl;
+                        pckt.setLastPacket();
+                    }
+
+                    //Push packet onto circular buffer
+                    std::cout << "Pushing packet with ID=" << packID - 1 << std::endl;
+                    window.Push(pckt);
+                }
+
+                while(!window.IsEmpty()) {      //Send until buffer empty
+                    Packet s_pkt = window.Pop();
+                    std::cout << "Sending packet with ID=" << s_pkt.GetID() << std::endl;
+                    std::cout << "Window packet count: " << window.GetPacketCount() << std::endl;
+                    n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
                 }
             }
 
-            //Contruct a packet using the read in data
-            Packet pckt((char *)buffer, sizeof(buffer), packID++, 0);
+            //Close the file
+            lFileStream.close();
 
-            //Push packet onto circular buffer
-            window.Push(pckt);
-
+            std::cout << "Read " << totalBytesRead << " bytes from file" << std::endl;
         }
-
-
-        while(!window.IsEmpty()) {      //Send until buffer empty
-            Packet s_pkt = window.Peek();
-            //char* test = s_pkt.GetRawData();
-            //for(int i = 0; i < s_pkt.GetSize(); i++) {
-            //    printf("%c", test[i]);
-            //}
-            n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
-            std::cout << "Sent packet" << std::endl;
-            window.Pop();
-        }
-
-        if(feof(file)) {        //Break if end of file reached
-            break;
-        }
-        //Send the packet
-        //n = sendto(sock, pckt.GetData(), pckt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
-
-
-
     }
-        //Wait for acknowledgement from client
-        //if(window.)
-
-
-
-
-
-
-    //Close the file
-    fclose(file);
-
-    std::cout << "Read " << totalBytesRead << " bytes from file" << std::endl;
-
-    //Send file
-//    n = sendto(sock, &buffer, totalBytesRead, 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
-
-    // if(n < 0) {
-    //     std::cerr << "Error sending file to client: " << strerror(errno) << std::endl;
-    //     return;
-    // }
-
-    // std::cout << "Sent " << n << " bytes to client" << std::endl;
 }

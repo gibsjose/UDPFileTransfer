@@ -2,86 +2,86 @@
 
 ServerWindow::ServerWindow(size_t size) {
     packets.resize(size);
-
-    //packets.clear();
-    vip = 0;
+    mStart = -1;
+    mEnd = 0;
 }
 
 size_t ServerWindow::GetSize(void) {
     return packets.size();
 }
 
-bool ServerWindow::IsFull(void) {
-    for(int i = 0; i < packets.size(); i++) {
-        if(packets.at(i).isEmpty()) {
-            //std::cout << "Packet " << i << " is empty" << std::endl;
-            return false;
+size_t ServerWindow::GetPacketCount(void)
+{
+    size_t lTally = 0;
+    for(size_t i = 0; i < packets.size(); i++)
+    {
+        if(!packets[i].isEmpty())
+        {
+            lTally++;
         }
     }
-//    std::cout << "SERVER WIN---> window size: " << packets.size() << std::endl;
-//    std::cout << "SERVER WIN---> window capacity " << packets.capacity() << std::endl;
-    // if(packets.size() >= packets.capacity()) {
-    //     return true;
-    // }
+    return lTally;
+}
 
-    return true;
+bool ServerWindow::IsFull(void) {
+    return (mStart == mEnd) && !packets[mStart].isEmpty();
 }
 
 bool ServerWindow::IsEmpty(void) {
-    for(int i = 0; i < packets.size(); i++) {
-        if(!packets.at(i).isEmpty()) {
-            return false;
-        }
+    if( (mStart == -1 && mEnd == 0) ||  //initial case where nothing was ever added
+        (mStart == mEnd && packets[mStart].isEmpty()) //start and end are at same spot and the packet is empty
+        )
+    {
+        return true;
     }
-
-    return true;
-}
-
-bool ServerWindow::IsEmpty(uint32_t index) {
-    return packets.at(index).isEmpty();
+    else
+    {
+        return false;
+    }
 }
 
 void ServerWindow::Clear(void) {
-    packets.clear();
+    // Actually just go clear each packet.
+    for(size_t i = 0; i < packets.size(); i++)
+    {
+        packets[i].clear();
+    }
 }
 
 void ServerWindow::Push(const Packet & packet) {
-    uint32_t id = packet.GetID();
-    std::cout << "packet id: " << id << std::endl;
-
-    uint32_t index = id % packets.size();
-    std::cout << "packet index: " << index << std::endl;
-
-
-    if(!packets[index].isEmpty()) {
-        std::cerr << "Error: Overwriting a non-empty packet in window... This should never happen" << std::endl;
+    if(this->IsFull())
+    {
+        throw new GeneralException("Cannot push: the window is full.");
     }
-    packets[index] = packet;
-    std::cout << "Packets size: " << packets.size() << std::endl;
+    else
+    {
+        if(mStart == -1) mStart = 0;    // this is the first push
+
+        packets[mEnd] = packet;
+        mEnd = (mEnd + 1) % packets.size(); // Loop back around
+    }
 }
 
-Packet ServerWindow::Peek(void) {
-    Packet packet = packets.at(vip);
-    return packet;
-}
-
-//Returns the VIP each time, only sliding forward if the VIP is not empty
 Packet ServerWindow::Pop(void) {
-    Packet packet = packets.at(vip);
-
-    //Not empty... Roll out the red carpet (for a few clock cycles)
-    std::cout << "Pop call" << std::endl;
-    if(!packet.isEmpty()) {
-        //Clear the VIP
-        packets.at(vip).clear();
-        std::cout << "Cleared packet at index: " << vip << std::endl;
-
-        //Slide the window forward and check if we walked off the end
-        if(++vip >= packets.size()) {
-            vip = 0;
-        }
+    if(this->IsEmpty())
+    {
+        throw new GeneralException("Cannot pop: the window is empty.");
     }
+    else
+    {
+        // Remove and return the packet at the start.
+        Packet packet = packets[mStart];
 
-    //Return the VIP, empty or not
-    return packet;
+        //Clear the window's copy of the packet being returned so another can replace it.
+        packets[mStart].clear();
+
+        // Move the start forward, wrapping around, until it points to a non-empty packet or is at the end.
+        do
+        {
+            mStart = (mStart + 1) % packets.size();
+            std::cout << "Moved start to " << mStart << std::endl;;
+        } while(packets[mStart].isEmpty() && mStart != mEnd);
+
+        return packet;
+    }
 }

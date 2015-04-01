@@ -55,7 +55,7 @@ Packet::Packet(char * aContentData, size_t aNumBytes, uint32_t aID, uint16_t aFl
 
 Packet::~Packet()
 {
-    if(mData != nullptr)
+    if(mData != NULL)
     {
         // free(mData);
         mData = NULL;
@@ -87,13 +87,13 @@ size_t Packet::GetSize()
 
 void Packet::clear()
 {
-    // if(mData != nullptr)
-    // {
-    //     std::cout << "PACKET CLEAR 1" << std::endl;
-    //     //free(mData);
-    //     std::cout << "PACKET CLEAR 2" << std::endl;
-    //     mData = NULL;
-    // }
+    if(mData != NULL)
+    {
+        // std::cout << "Freeing data: " << std::endl;
+        //free(mData);
+        mData = NULL;
+        // printf("Data: %p\n", mData);
+    }
     mNumDataBytes = 0;
     mID = 0;
     mCheckSum = 0;
@@ -103,8 +103,7 @@ void Packet::clear()
 uint16_t Packet::ip_checksum(const void *buf, size_t hdr_len)
 {
      unsigned long sum = 0;
-     const uint16_t *ip1;
-     ip1 = (const uint16_t*)buf;
+     const uint16_t *ip1 = (const uint16_t*)buf;
      while (hdr_len > 1)
      {
              sum += *ip1++;
