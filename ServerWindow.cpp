@@ -50,20 +50,28 @@ void ServerWindow::Clear(void) {
 
 void ServerWindow::AckPacketWithID(uint16_t aID)
 {
+    // std::cout << "AckPacketWithID(): start: " << this->mStart << " end: " << this->mEnd << std::endl;
+
     bool lFound = false;
     for(size_t i = 0; i < packets.size(); i++)
     {
         if(packets[i].GetID() == aID)
         {
-            //packets[i].setIsAcked();
+            // Clear (ack) the packet
             packets[i].clear();
             lFound = true;
 
-            // If the packet that was ACKed was at the start of the window,
-            // advance the start index.
+            // If the ACKed packet is the start packet, advance the start index
+            // by 1.
+            if(i == mStart)
+            {
+                mStart = (mStart + 1) % packets.size();
+            }
+
+            // Advance the start index until it points at a non-empty packet.
             while(packets[mStart].isEmpty() && mStart != mEnd){
                 mStart = (mStart + 1) % packets.size();
-                std::cout << "Moved start to " << mStart << std::endl;;
+                // std::cout << "Moved start to " << mStart << std::endl;;
             }
 
             break;
@@ -71,9 +79,10 @@ void ServerWindow::AckPacketWithID(uint16_t aID)
     }
     if(!lFound)
     {
-        throw new GeneralException("Could not set the packet as acked since it is not in the window. ID: "
+        throw GeneralException("Could not set the packet as acked since it is not in the window. ID: "
                                     + std::to_string(aID));
     }
+    // std::cout << "AckPacketWithID(): start: " << this->mStart << " end: " << this->mEnd << std::endl;
 }
 
 void ServerWindow::Push(const Packet & packet) {
@@ -83,10 +92,14 @@ void ServerWindow::Push(const Packet & packet) {
     }
     else
     {
+        // std::cout << "Push(): start: " << this->mStart << " end: " << this->mEnd << std::endl;
+
         if(mStart == -1) mStart = 0;    // this is the first push
 
         packets[mEnd] = packet;
         mEnd = (mEnd + 1) % packets.size(); // Loop back around
+
+        // std::cout << "Push(): start: " << this->mStart << " end: " << this->mEnd << std::endl;
     }
 }
 
@@ -107,7 +120,7 @@ Packet ServerWindow::Pop(void) {
         do
         {
             mStart = (mStart + 1) % packets.size();
-            std::cout << "Moved start to " << mStart << std::endl;;
+            // std::cout << "Moved start to " << mStart << std::endl;;
         } while(packets[mStart].isEmpty() && mStart != mEnd);
 
         return packet;

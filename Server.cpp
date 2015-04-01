@@ -156,7 +156,6 @@ void Server::SendFileToClient(std::string aFilePath) {
                         {
                             bytesRead = lFileStream.readsome(buffer, PACKET_DATA_SIZE);
                             totalBytesRead += bytesRead;
-                            std::cout << "Read " << totalBytesRead << " total bytes." << std::endl;
 
                             if(lFileStream.bad()) {
                                 std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
@@ -183,7 +182,7 @@ void Server::SendFileToClient(std::string aFilePath) {
                 // sent as ACKed.
                 while(true)
                 {
-                    int n = recvfrom(sock, buffer, PACKET_SIZE, 0, (struct sockaddr *)&serverAddress, &len);
+                    int n = recvfrom(sock, buffer, PACKET_SIZE, MSG_DONTWAIT, (struct sockaddr *)&serverAddress, &len);
                     if(n <= 0) {
                         if(errno != 11) //resource temporarily unavailable
                         {
@@ -196,6 +195,7 @@ void Server::SendFileToClient(std::string aFilePath) {
                         Packet lPacket(buffer, n);
                         if(lPacket.isAckPacket())
                         {
+                            std::cout << "ACKing packet with ID=" << lPacket.GetID() << std::endl;
                             window.AckPacketWithID(lPacket.GetID());
                         }
                     }
