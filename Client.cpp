@@ -9,11 +9,13 @@ void Client::Run(void) {
 
     std::ofstream file(this->destination, std::ofstream::binary);
 
+    //Check if file is open
     if(!file.is_open()) {
         std::cerr << "Could not open destination file: " << this->destination << "\n" << std::endl;
         exit(-1);
     }
 
+    //File is open
     else {
         bool finished = false;
 
@@ -37,25 +39,13 @@ void Client::Run(void) {
                     SendAckToServer(packets.at(i).GetID());
 
                     //Try to pop and write as many packets as we can
-                    while(!window.IsEmpty()) {
-                        packet = window.Pop();
+                    while(!(packet = window.Pop()).isEmpty()) {
+                        //Write the file to the packet
+                        file.write(packet.GetData(), packet.GetDataSize());
 
-                        //Packet can be written to the file
-                        if(!packet.isEmpty()) {
-                            //Write the file to the packet
-                            file.write(packet.GetData(), packet.GetDataSize());
-
-                            //Check if it is the last packet
-                            if(packet.isLastPacket()) {
-                                finished = true;
-                                break;
-                            }
-                        }
-
-                        //The window is NOT empty, but the packet is, so we can't write it to the file.
-                        //This can happen when we have received a packet out of order, or have not received the
-                        // first packet we are waiting for.
-                        else {
+                        //Check if it is the last packet
+                        if(packet.isLastPacket()) {
+                            finished = true;
                             break;
                         }
                     }
@@ -126,18 +116,15 @@ void Client::RequestFileFromServer(void) {
 }
 
 void Client::SendAckToServer(uint32_t id) {
-    //Clear filepath
-    filepath.clear();
-
-    char buffer[1024];
+    //Create a blank packet and set the ID and set the ACK Flag
     Packet ack = Packet();
     ack.setAckPacket();
     ack.setId(id);
 
     //Send the filepath request to the server
-    int n = sendto(sock, ack.GetRawData(), strlen(ack.GetRawData()) + 1, 0, (struct sockaddr *)&serverAddress, sizeof(struct sockaddr));
+    int n = sendto(sock, ack.GetRawData(), PACKET_SIZE, 0, (struct sockaddr *)&serverAddress, sizeof(struct sockaddr));
 
-    std::cout << "Sent ack to server" << std::endl;
+    std::cout << "Sent ack to server for packet: " << id << std::endl;
 }
 
 std::vector<Packet> Client::GetPacketsFromServer(void) {
