@@ -36,11 +36,9 @@ void Client::Run(void) {
           }
 
         //   Packet p;
-        //   std::cout << "dude" << std::endl;
         //   //TODO verify checksum
         //   //Take a packet one at a time and place into window
         //   while(!packets.empty()) {
-        //     std::cout << "in while" << std::endl;
         //     p = packets.back();
         //     packets.pop_back();
           //
@@ -52,7 +50,6 @@ void Client::Run(void) {
         //     //If we can pop from window we do until we cannot anymore
         //     while(!(pakPop = window.Pop()).isEmpty()) {
         //       //Write the packets that we pop from the window to the file
-        //       std::cout << "About to write" << std::endl;
         //       lFile.write(pakPop.GetMData(), pakPop.GetMDataSize());
         //     }
         //   }
@@ -169,25 +166,6 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
             packets.push_back(lPacket);
         }
     }
-
-
-
-
-    // int tempn = 0;
-    // int num = 968;
-    // while(n > 0) {
-    //     Packet p;
-    // if(n > 968) {
-    //     p = Packet(substr(buffer, tempn, 968), 968);
-    //     tempn += 968;
-    // } else {
-    //     p = Packet(substr(buffer, tempn, n), n);
-    // }
-    //     packets.push_back(p);
-    //     n -= 968;
-    // }
-
-    // return packets;
 }
 
 char* Client::substr(char* arr, int begin, int len)
