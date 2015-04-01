@@ -27,8 +27,8 @@ public:
 
 private:
     void CreateClientSocket(void);
-    void ReceiveRequestFromClient(void);
-    void SendFileToClient(void);
+    std::string ReceiveRequestFromClient(void);
+    void SendFileToClient(std::string aFilePath);
 
     int sock;
     struct sockaddr_in serverAddress;
