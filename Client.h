@@ -11,10 +11,10 @@
 #include <fstream>
 #include <iostream>
 
+#include "Globals.h"
 #include "StringUtilities.h"
 #include "Packet.h"
 #include "ClientWindow.h"
-
 
 class Client {
 public:
@@ -31,7 +31,7 @@ public:
 private:
     void CreateServerSocket(void);
     void RequestFileFromServer(void);
-    std::vector<Packet> ReceiveFileFromServer(void);
+    std::vector<Packet> GetPacketsFromServer(void);
     void SendAckToServer(uint32_t id);
 
     int sock;

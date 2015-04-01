@@ -4,61 +4,67 @@ void Client::Run(void) {
     CreateServerSocket();
     RequestFileFromServer();
 
-    // if(file == NULL) {
-    //     std::cerr << "Error writing to destination file: " << strerror(errno) << std::endl;
-    //     return;
-    // }
     Packet empty = Packet();
     ClientWindow window = ClientWindow(5);
 
-    std::ofstream lFile(this->destination, std::ofstream::binary);
+    std::ofstream file(this->destination, std::ofstream::binary);
 
-    if(!lFile.is_open())
-    {
+    if(!file.is_open()) {
         std::cerr << "Could not open destination file: " << this->destination << "\n" << std::endl;
         exit(-1);
     }
-    else
-    {
-        bool lFinished = false;
-        while(!lFinished) {
-          //recieve a vector of up to 5 packets from the server
-          std::vector<Packet> packets = ReceiveFileFromServer();
-          for(size_t i = 0; i < packets.size(); i++)
-          {
-              lFile.write(packets[i].GetMData(), packets[i].GetMDataSize());
-              packets[i].Print();   //DEBUG
-              if(packets[i].isLastPacket())
-              {
-                  lFinished = true;
-                  break;
-              }
-          }
 
-        //   Packet p;
-        //   std::cout << "dude" << std::endl;
-        //   //TODO verify checksum
-        //   //Take a packet one at a time and place into window
-        //   while(!packets.empty()) {
-        //     std::cout << "in while" << std::endl;
-        //     p = packets.back();
-        //     packets.pop_back();
-          //
-        //     //SendAckToServer(p.GetID());
-        //     if(!p.isEmpty()) {
-        //       window.Push(p);
-        //     }
-        //     Packet pakPop;
-        //     //If we can pop from window we do until we cannot anymore
-        //     while(!(pakPop = window.Pop()).isEmpty()) {
-        //       //Write the packets that we pop from the window to the file
-        //       std::cout << "About to write" << std::endl;
-        //       lFile.write(pakPop.GetMData(), pakPop.GetMDataSize());
-        //     }
-        //   }
+    else {
+        bool finished = false;
+
+        //Declare window of size 5 for the client
+        ClientWindow window(5);
+        Packet packet;
+
+        while(!finished) {
+
+            //Recieve a vector of up to 5 packets from the server
+            std::vector<Packet> packets = GetPacketsFromServer();
+
+            for(size_t i = 0; i < packets.size(); i++) {
+
+                //Compute checksum on packet before we push it and send ACK
+                if(packets.at(i).CompareChecksum(packets.at(i).GetChecksum())) {
+                    //Push the packet to the window
+                    window.Push(packets.at(i));
+
+                    //Send an ACK to the server
+                    SendAckToServer(packets.at(i).GetID());
+
+                    //Try to pop and write as many packets as we can
+                    while(!window.IsEmpty()) {
+                        packet = window.Pop();
+
+                        //Packet can be written to the file
+                        if(!packet.isEmpty()) {
+                            //Write the file to the packet
+                            file.write(packet.GetMData(), packet.GetMDataSize());
+
+                            //Check if it is the last packet
+                            if(packet.isLastPacket()) {
+                                finished = true;
+                                break;
+                            }
+                        }
+
+                        //The window is NOT empty, but the packet is, so we can't write it to the file.
+                        //This can happen when we have received a packet out of order, or have not received the
+                        // first packet we are waiting for.
+                        else {
+                            break;
+                        }
+                    }
+                }
+            }
         }
+
+        file.close();
     }
-    lFile.close();
 }
 
 void Client::CreateServerSocket(void) {
@@ -134,18 +140,16 @@ void Client::SendAckToServer(uint32_t id) {
     std::cout << "Sent ack to server" << std::endl;
 }
 
-std::vector<Packet> Client::ReceiveFileFromServer(void) {
+std::vector<Packet> Client::GetPacketsFromServer(void) {
     std::vector<Packet> packets;
 
-    char buffer[968];
+    char buffer[PACKET_SIZE];
     unsigned int len = sizeof(struct sockaddr);
 
     while(true)
     {
-        std::cout << "Receiving..." << std::endl;
+        int n = recvfrom(sock, buffer, PACKET_SIZE, 0, (struct sockaddr *)&serverAddress, &len);
 
-        int n = recvfrom(sock, buffer, 968, 0, (struct sockaddr *)&serverAddress, &len);
-        std::cout << "Got " << n << " bytes." << std::endl;
         if(n < 0) {
             std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
             return packets;
@@ -169,32 +173,13 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
             packets.push_back(lPacket);
         }
     }
-
-
-
-
-    // int tempn = 0;
-    // int num = 968;
-    // while(n > 0) {
-    //     Packet p;
-    // if(n > 968) {
-    //     p = Packet(substr(buffer, tempn, 968), 968);
-    //     tempn += 968;
-    // } else {
-    //     p = Packet(substr(buffer, tempn, n), n);
-    // }
-    //     packets.push_back(p);
-    //     n -= 968;
-    // }
-
-    // return packets;
 }
 
-char* Client::substr(char* arr, int begin, int len)
+char * Client::substr(char* arr, int begin, int len)
 {
     char* res = new char[len];
     for (int i = 0; i < len; i++)
-        res[i] = *(arr + begin + i);
+    res[i] = *(arr + begin + i);
     res[len] = 0;
     return res;
 }

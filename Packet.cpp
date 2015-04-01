@@ -5,7 +5,7 @@ Packet::Packet()
     mData = NULL;
     mNumDataBytes = 0;
     mID = 0;
-    mCheckSum = 0;
+    mChecksum = 0;
     mFlags = 0;
 }
 
@@ -16,7 +16,7 @@ Packet::Packet(char * aRawData, size_t aNumBytes)
     memcpy(&mID, p, sizeof(uint32_t));
     p += sizeof(uint32_t);
 
-    memcpy(&mCheckSum, p, sizeof(uint16_t));
+    memcpy(&mChecksum, p, sizeof(uint16_t));
     p += sizeof(uint16_t);
 
     memcpy(&mFlags, p, sizeof(uint16_t));
@@ -30,7 +30,7 @@ Packet::Packet(char * aRawData, size_t aNumBytes)
 
 Packet::Packet(char * aContentData, size_t aNumBytes, uint32_t aID, uint16_t aFlags)
 {
-    if(PACKET_SIZE >= (sizeof(mID) + sizeof(mCheckSum) + sizeof(mFlags) + aNumBytes))
+    if(PACKET_SIZE >= (sizeof(mID) + sizeof(mChecksum) + sizeof(mFlags) + aNumBytes))
     {
         // Copy the data into this object.
         mNumDataBytes = aNumBytes;
@@ -38,7 +38,7 @@ Packet::Packet(char * aContentData, size_t aNumBytes, uint32_t aID, uint16_t aFl
         memcpy(mData, aContentData, mNumDataBytes);
 
         // Calculate the 16 bit IP checksum of the data.
-        mCheckSum = ip_checksum(mData, mNumDataBytes);
+        mChecksum = ip_checksum(mData, mNumDataBytes);
 
         // Save the flags.
         mFlags = aFlags;
@@ -67,7 +67,7 @@ void Packet::Print() const
 {
     std::cout << "Packet: " << std::endl;
     std::cout << "\tID: " << this->mID << std::endl;
-    std::cout << "\tChecksum: " << this->mCheckSum << std::endl;
+    std::cout << "\tChecksum: " << this->mChecksum << std::endl;
     std::cout << "\tFlags: " << std::bitset<16>(this->mFlags) << std::endl;
     std::cout << "\tLength of data: " << this->mNumDataBytes << std::endl;
 
@@ -82,7 +82,7 @@ char * Packet::GetRawData()
 
     memcpy(lTemp, &mID, sizeof(uint32_t));
     lTemp += sizeof(uint32_t);
-    memcpy(lTemp, &mCheckSum, sizeof(uint16_t));
+    memcpy(lTemp, &mChecksum, sizeof(uint16_t));
     lTemp += sizeof(uint16_t);
     memcpy(lTemp, &mFlags, sizeof(uint16_t));
     lTemp += sizeof(uint16_t);
@@ -107,8 +107,13 @@ void Packet::clear()
     }
     mNumDataBytes = 0;
     mID = 0;
-    mCheckSum = 0;
+    mChecksum = 0;
     mFlags = 0;
+}
+
+//Compare the checksum
+const bool Packet::CompareChecksum(const uint16_t checksum) {
+    return (checksum == ip_checksum(mData, mNumDataBytes));
 }
 
 uint16_t Packet::ip_checksum(const void *buf, size_t hdr_len)

@@ -30,9 +30,11 @@ public:
     char * GetRawData();
     size_t GetSize();
     uint16_t GetID() const { return mID; }
-    char * GetMData() const { return mData; }
-    size_t GetMDataSize() const { return mNumDataBytes; }
-    const uint16_t getCheckSum() const { return mCheckSum; }
+    char * GetData() const { return mData; }
+    size_t GetDataSize() const { return mNumDataBytes; }
+    const uint16_t GetChecksum() const { return mChecksum; }
+
+    const bool CompareChecksum(const uint16_t checksum);
 
     const bool isAcked() const { return (mFlags & IS_ACKED) != 0; }
     const bool isAckPacket() const { return (mFlags & IS_ACK_PACKET) != 0; }
@@ -56,7 +58,7 @@ private:
     char * mData;
     size_t mNumDataBytes;
     uint32_t mID;
-    uint16_t mCheckSum;
+    uint16_t mChecksum;
     uint16_t mFlags;
 };
 
