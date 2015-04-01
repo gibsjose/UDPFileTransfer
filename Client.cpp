@@ -43,7 +43,7 @@ void Client::Run(void) {
                         //Packet can be written to the file
                         if(!packet.isEmpty()) {
                             //Write the file to the packet
-                            file.write(packet.GetMData(), packet.GetMDataSize());
+                            file.write(packet.GetData(), packet.GetDataSize());
 
                             //Check if it is the last packet
                             if(packet.isLastPacket()) {
