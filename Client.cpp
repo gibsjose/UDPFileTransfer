@@ -122,14 +122,16 @@ void Client::RequestFileFromServer(void) {
 
 void Client::SendAckToServer(uint32_t id) {
     //Create a blank packet and set the ID and set the ACK Flag
-    Packet ack = Packet();
-    ack.setAckPacket();
-    ack.setId(id);
+    char buffer[ACK_DATA_SIZE];
+    strncpy(buffer, ACK_DATA, ACK_DATA_SIZE);
+
+    //Create a packet and ACK it
+    Packet ack = Packet(buffer, ACK_DATA_SIZE, id, IS_ACK_PACKET);
 
     //Send the filepath request to the server
-    int n = sendto(sock, ack.GetRawData(), PACKET_SIZE, 0, (struct sockaddr *)&serverAddress, sizeof(struct sockaddr));
+    int n = sendto(sock, ack.GetRawData(), ack.GetSize(), 0, (struct sockaddr *)&serverAddress, sizeof(struct sockaddr));
 
-    std::cout << "Sent ack to server for packet: " << id << std::endl;
+    std::cout << "Sent ACK to server for packet: " << id << std::endl;
 }
 
 std::vector<Packet> Client::GetPacketsFromServer(void) {
