@@ -154,8 +154,8 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
     //   p = Packet(substr(buffer, bufferSpot - 1024, 1024), 1024);
     //   packets.push_back(p);
     // }
-    size_t len = strlen(buffer);
-    p = Packet(buffer, len);
+    size_t len_t = strlen(buffer);
+    p = Packet(buffer, len_t);
     std::cout << "Into Packet" << std::endl;
     packets.push_back(p);
     std::cout << "Received " << n << " bytes from server" << std::endl;
