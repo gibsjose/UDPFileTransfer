@@ -10,21 +10,20 @@ void Client::Run(void) {
     // }
     Packet empty = Packet();
     ClientWindow window = ClientWindow(5);
+    FILE * file = fopen(destination.c_str(), "ab");
+    Packet p = Packet();
 
-    while(true) {
+    while(!p.isLastPacket()) {
       //recieve a vector of up to 5 packets from the server
       std::vector<Packet> packets = ReceiveFileFromServer();
 
-      Packet p;
       std::cout << "dude" << std::endl;
       //TODO verify checksum
       //Take a packet one at a time and place into window
       while(!packets.empty()) {
         std::cout << "in while" << std::endl;
-        FILE * file = fopen(destination.c_str(), "ab");
         p = packets.back();
         packets.pop_back();
-
         SendAckToServer(p.GetID());
         if(!p.isEmpty()) {
           window.Push(p);
@@ -44,6 +43,7 @@ void Client::Run(void) {
         }
       }
     }
+    fclose(file);
 }
 
 void Client::CreateServerSocket(void) {
@@ -122,7 +122,6 @@ void Client::SendAckToServer(uint32_t id) {
 std::vector<Packet> Client::ReceiveFileFromServer(void) {
     std::cout << "Were here" << std::endl;
 
-    int bufferSpot = 1024;
     //5MB File buffer
     char buffer[1024 * 5];
 
@@ -142,13 +141,20 @@ std::vector<Packet> Client::ReceiveFileFromServer(void) {
             return packets;
         }
     }
+    int tempn = 0;
+    int num = 1024;
+    while(n > 0) {
+      Packet p;
+      if(n > 1024) {
+        P = Packet(substr(buffer, tempn, 1024), 1024);
+        tempn += 1024;
+      } else {
+        p = Packet(substr(buffer, tempn, n), n);
+      }
+      packets.push_back(p);
+      n -= 1024;
+    }
 
-
-    Packet p = Packet(buffer, n);
-    std::cout << "Into Packet" << std::endl;
-    packets.push_back(p);
-    std::cout << "Received " << n << " bytes from server" << std::endl;
-    
     return packets;
 }
 
