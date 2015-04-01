@@ -139,12 +139,6 @@ void Server::SendFileToClient(void) {
 
                     std::cout << "Bytes read: " << bytesRead << std::endl;
 
-                    if(bytesRead < 959)
-                    {
-                        std::cout << "Last packet..." << std::endl;
-                        pckt.setLastPacket();
-                    }
-
                     //Push packet onto circular buffer
                     std::cout << "Pushing packet with ID=" << packID - 1 << std::endl;
                     window.Push(pckt);
@@ -154,7 +148,11 @@ void Server::SendFileToClient(void) {
                     Packet s_pkt = window.Pop();
                     std::cout << "Sending packet with ID=" << s_pkt.GetID() << std::endl;
                     std::cout << "Window packet count: " << window.GetPacketCount() << std::endl;
-                    std::cout << s_pkt.GetRawData() << std::endl;
+                    if(lFinished && window.IsEmpty())
+                    {
+                        s_pkt.setLastPacket();
+                        std::cout << "Setting last packet with ID: " << s_pkt.GetID() << std::endl;
+                    }
                     n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0, (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
                 }
             }

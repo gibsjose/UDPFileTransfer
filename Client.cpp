@@ -20,7 +20,8 @@ void Client::Run(void) {
     }
     else
     {
-        while(true) {
+        bool lFinished = false;
+        while(!lFinished) {
           //recieve a vector of up to 5 packets from the server
           std::vector<Packet> packets = ReceiveFileFromServer();
           for(size_t i = 0; i < packets.size(); i++)
@@ -29,6 +30,7 @@ void Client::Run(void) {
               packets[i].Print();   //DEBUG
               if(packets[i].isLastPacket())
               {
+                  lFinished = true;
                   break;
               }
           }
@@ -65,7 +67,7 @@ void Client::CreateServerSocket(void) {
 
     //Create timeval struct
     struct timeval to;
-    to.tv_sec = 10;
+    to.tv_sec = 1;
     to.tv_usec = 0;
 
     //Make socket only wait for 10 seconds w/ setsockopt
@@ -135,37 +137,57 @@ void Client::SendAckToServer(uint32_t id) {
 std::vector<Packet> Client::ReceiveFileFromServer(void) {
     std::vector<Packet> packets;
 
-    int bufferSpot = 1024;
-    //5MB File buffer
-    char buffer[1024 * 5];
-
+    char buffer[968];
     unsigned int len = sizeof(struct sockaddr);
-    int n = recvfrom(sock, buffer, 1024, 0, (struct sockaddr *)&serverAddress, &len);
 
-    if(n < 0) {
-        std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
-        return packets;
-    }
+    while(true)
+    {
+        std::cout << "Receiving..." << std::endl;
 
-    if(n == 1) {
-        if((unsigned char)buffer[0] == 0xEE) {
-            std::cerr << "File \"" << filepath << "\" does not exist" << std::endl;
+        int n = recvfrom(sock, buffer, 968, 0, (struct sockaddr *)&serverAddress, &len);
+        std::cout << "Got " << n << " bytes." << std::endl;
+        if(n < 0) {
+            std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
             return packets;
+        }
+        else if(n == 1) {
+            if((unsigned char)buffer[0] == 0xEE) {
+                std::cerr << "File \"" << filepath << "\" does not exist" << std::endl;
+                return packets;
+            }
+        }
+        else if(n == 0)
+        {
+            // no more data, so return the packets
+            std::cout << "No more packets..." << std::endl;
+            return packets;
+        }
+        else
+        {
+            std::cout << "Creating packet..." << std::endl;
+            Packet lPacket(buffer, n);
+            packets.push_back(lPacket);
         }
     }
 
 
-    Packet p = Packet(buffer, n);
-    std::cout << "Into Packet" << std::endl;
 
-    std::cout << "receved" << std::endl;
-    std::cout << std::string(p.GetMData(), p.GetMDataSize()) << std::endl;
-    std::cout << "after print" << std::endl;
 
-    packets.push_back(p);
-    std::cout << "Received " << n << " bytes from server" << std::endl;
+    // int tempn = 0;
+    // int num = 968;
+    // while(n > 0) {
+    //     Packet p;
+    // if(n > 968) {
+    //     p = Packet(substr(buffer, tempn, 968), 968);
+    //     tempn += 968;
+    // } else {
+    //     p = Packet(substr(buffer, tempn, n), n);
+    // }
+    //     packets.push_back(p);
+    //     n -= 968;
+    // }
 
-    return packets;
+    // return packets;
 }
 
 char* Client::substr(char* arr, int begin, int len)
