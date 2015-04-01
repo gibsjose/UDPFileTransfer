@@ -145,9 +145,9 @@ void Server::SendFileToClient(void) {
                     }
 
                     // Send the packet
-                    std::cout << "Sending packet with ID=" << s_pkt.GetID() << std::endl;
+                    std::cout << "Sending packet with ID=" << pckt.GetID() << std::endl;
 
-                    n = sendto(sock, s_pkt.GetRawData(), s_pkt.GetSize(), 0,
+                    n = sendto(sock, pckt.GetRawData(), pckt.GetSize(), 0,
                                 (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
 
                     //Push packet onto the server window.
