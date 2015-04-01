@@ -34,6 +34,7 @@ void Client::Run(void) {
         while(!(pakPop = window.Pop()).isEmpty()) {
           //Write the packets that we pop from the window to the file
           std::cout << "About to write" << std::endl;
+          std::string temp = std::string(pakPop.GetMData(), strlen(pakPop.GetMData()));
           std::cout << pakPop.GetMData() << std::endl;
           int bytesWritten = fwrite(pakPop.GetMData(), 1, strlen(pakPop.GetMData()), file);
           if(bytesWritten != pakPop.GetSize()) {
