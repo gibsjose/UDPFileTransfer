@@ -143,7 +143,7 @@ std::vector<Packet> Client::GetPacketsFromServer(void) {
         int n = recvfrom(sock, buffer, PACKET_SIZE, MSG_DONTWAIT, (struct sockaddr *)&serverAddress, &len);
 
         if(n < 0) {
-            std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
+            //std::cerr << "Error receiving file from server: " << strerror(errno) << std::endl;
             return packets;
         }
         else if(n == 1) {
