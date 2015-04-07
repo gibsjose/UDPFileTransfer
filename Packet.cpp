@@ -111,6 +111,11 @@ void Packet::clear()
     mFlags = 0;
 }
 
+void Packet::setTimeSent(struct timeval aTime)
+{
+    mTimeSent = aTime;
+}
+
 //Compare the checksum
 const bool Packet::CompareChecksum(const uint16_t checksum) {
     return (checksum == ip_checksum(mData, mNumDataBytes));

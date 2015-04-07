@@ -134,17 +134,27 @@ void Server::SendFileToClient(std::string aFilePath) {
                             Packet pckt(buffer, bytesRead, packID++, 0);
 
                             // If this is the end, mark the packet as such.
+                            std::cout << "Finished reading: " << lFinishedReading << std::endl;
                             if(lFinishedReading)
                             {
-                                std::cout << "Marking last packet: " << pckt.GetID() << std::endl;
+                                std::cout << "\tMarking last packet with ID=" << pckt.GetID() << std::endl;
                                 pckt.setLastPacket();
                             }
 
                             // Send the packet
-                            std::cout << "Sending packet with ID=" << pckt.GetID() << std::endl;
+                            std::cout << "Sending ID=" << pckt.GetID() << std::endl;
 
                             n = sendto(sock, pckt.GetRawData(), pckt.GetSize(), 0,
                                         (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+
+                            // Mark the time this packet was sent as now so that later it can be reset if it is not ACKed.
+                            struct timeval lTime;
+                            if(0 != gettimeofday(&lTime, NULL))
+                            {
+                                std::cerr << "Error: gettimeofday(): " << strerror(errno) << "\n";
+                                exit(-1);
+                            }
+                            pckt.setTimeSent(lTime);
 
                             //Push packet onto the server window.
                             window.Push(pckt);
@@ -154,7 +164,6 @@ void Server::SendFileToClient(std::string aFilePath) {
                         // There is no more data to read.
                         if(lFinishedReading)
                         {
-                            std::cout << "Breaking..." << std::endl;
                             break;
                         }
                         else
@@ -164,7 +173,7 @@ void Server::SendFileToClient(std::string aFilePath) {
 
                             if(lFileStream.bad()) {
                                 std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
-                                return;
+                                exit(-1);
                             } else if(lFileStream.eof()) {
                                 //Done reading the file
                                 std::cout << "Done reading the file." << std::endl;
@@ -180,14 +189,41 @@ void Server::SendFileToClient(std::string aFilePath) {
                             // If the current location in the file is at the end, this is the end.  Boom.
                             if(!lFinishedReading)
                             {
-                                lFinishedReading = lFileLength == lFileStream.tellg();
+                                lFinishedReading = (lFileLength == lFileStream.tellg());
+
+                                if(lFinishedReading)
+                                {
+                                    std::cout << "\tFound end of file." << std::endl;
+                                }
                             }
                         }
                     }
                 }
 
                 // Resend packets that have timed out.
+                std::vector<Packet*> lPacketsToResend = window.GetTimedOutPackets();
 
+                for(size_t i = 0; i < lPacketsToResend.size(); i++)
+                {
+                    // Resend the packet
+                    std::cout << "Resending packet with ID=" << lPacketsToResend[i]->GetID() << std::endl;
+
+                    n = sendto(sock,
+                                lPacketsToResend[i]->GetRawData(),
+                                lPacketsToResend[i]->GetSize(),
+                                0,
+                                (struct sockaddr *)&clientAddress,
+                                sizeof(struct sockaddr));
+
+                    // Update the time this packet was sent.
+                    struct timeval lTime;
+                    if(0 != gettimeofday(&lTime, NULL))
+                    {
+                        std::cerr << "Error: gettimeofday(): " << strerror(errno) << "\n";
+                        exit(-1);
+                    }
+                    lPacketsToResend[i]->setTimeSent(lTime);
+                }
 
                 // Receive ACKs if they come back from the client and mark the corresponding packets that were
                 // sent as ACKed.
@@ -206,8 +242,15 @@ void Server::SendFileToClient(std::string aFilePath) {
                         Packet lPacket(buffer, n);
                         if(lPacket.isAckPacket())
                         {
-                            std::cout << "ACKing packet with ID=" << lPacket.GetID() << std::endl;
+                            std::cout << "ACKing ID=" << lPacket.GetID() << std::endl;
                             window.AckPacketWithID(lPacket.GetID());
+                        }
+
+                        if(lFinishedReading && window.IsEmpty())
+                        {
+                            // This must have been the last packet.
+                            lFinished = true;
+                            break;
                         }
                     }
                 }

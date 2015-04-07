@@ -33,6 +33,7 @@ public:
     char * GetData() const { return mData; }
     size_t GetDataSize() const { return mNumDataBytes; }
     const uint16_t GetChecksum() const { return mChecksum; }
+    const struct timeval GetTimeSent() const { return mTimeSent; }
 
     const bool CompareChecksum(const uint16_t checksum);
 
@@ -48,6 +49,7 @@ public:
     void setIsAcked() { mFlags |= IS_ACKED; }
     void setAckPacket() { mFlags |= IS_ACK_PACKET; }
     void setLastPacket() { mFlags |= LAST_PACKET; }
+    void setTimeSent(struct timeval aTime);
     void clear();
 
 private:
@@ -60,6 +62,7 @@ private:
     uint32_t mID;
     uint16_t mChecksum;
     uint16_t mFlags;
+    struct timeval mTimeSent;
 };
 
 

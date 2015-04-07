@@ -17,8 +17,9 @@ def run():
     with open(lOutputFile, "w") as lFile:
         lMagicNumber = 0
         for x in range(0, lNumPackets):
-            for y in range(0, lPacketLength):
+            for y in range(0, lPacketLength - 1):
                 lFile.write(str(lMagicNumber))
+            lFile.write('\n')
             lMagicNumber = lMagicNumber + 1
 
 if __name__ == '__main__':

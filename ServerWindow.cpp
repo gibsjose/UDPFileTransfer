@@ -23,6 +23,47 @@ size_t ServerWindow::GetPacketCount(void)
     return lTally;
 }
 
+std::vector<Packet *> ServerWindow::GetTimedOutPackets()
+{
+    // 100ms (hardcoded timeout if not acked)
+    struct timeval lTimeoutTime;
+    lTimeoutTime.tv_sec = 0;
+    lTimeoutTime.tv_usec = 100000;  // 100ms
+
+    // Record now.
+    struct timeval lNowTime;
+    if(0 != gettimeofday(&lNowTime, NULL))
+    {
+        std::cerr << "Error: gettimeofday(): " << strerror(errno) << "\n";
+        exit(-1);
+    }
+
+    struct timeval lResult;
+
+    if(0 != timeval_subtract(&lResult, &lNowTime, &lTimeoutTime))
+    {
+        std::cerr << "Error: timeval_subtract(): " << strerror(errno) << "\n";
+        exit(-1);
+    }
+
+    // Do some math with timevals to figure out if the time sent for each packet is too long ago.
+
+    std::vector<Packet *> lPackets;
+    for(size_t i = 0; i < packets.size(); i++)
+    {
+        struct timeval lDummy;
+        struct timeval lTimeSent = packets[i].GetTimeSent();
+        if( (!packets[i].isAcked() ) && (-1 == timeval_subtract(&lDummy, &(lTimeSent), &lResult)) )
+        {
+            // -1 is returned when the result is negative (i.e. when the time the
+            // packet was sent was less than the timeval specifying the oldest permissible time).
+            lPackets.push_back(&(packets[i]));
+        }
+    }
+
+    return lPackets;
+}
+
 bool ServerWindow::IsFull(void) {
     return (mStart == mEnd) && !packets[mStart].isEmpty();
 }
@@ -125,4 +166,32 @@ Packet ServerWindow::Pop(void) {
 
         return packet;
     }
+}
+
+/* Subtract the ‘struct timeval’ values X and Y,
+   storing the result in RESULT.
+   Return 1 if the difference is negative, otherwise 0. */
+
+int
+ServerWindow::timeval_subtract (struct timeval * result, struct timeval * x, struct timeval * y)
+{
+  /* Perform the carry for the later subtraction by updating y. */
+  if (x->tv_usec < y->tv_usec) {
+    int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
+    y->tv_usec -= 1000000 * nsec;
+    y->tv_sec += nsec;
+  }
+  if (x->tv_usec - y->tv_usec > 1000000) {
+    int nsec = (x->tv_usec - y->tv_usec) / 1000000;
+    y->tv_usec += 1000000 * nsec;
+    y->tv_sec -= nsec;
+  }
+
+  /* Compute the time remaining to wait.
+     tv_usec is certainly positive. */
+  result->tv_sec = x->tv_sec - y->tv_sec;
+  result->tv_usec = x->tv_usec - y->tv_usec;
+
+  /* Return 1 if result is negative. */
+  return x->tv_sec < y->tv_sec;
 }

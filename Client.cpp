@@ -147,7 +147,7 @@ std::vector<Packet> Client::GetPacketsFromServer(void) {
             return packets;
         }
         else {
-            std::cout << "Creating packet..." << std::endl;
+            // std::cout << "Creating packet..." << std::endl;
             Packet packet(buffer, n);
             packets.push_back(packet);
         }
