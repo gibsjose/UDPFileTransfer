@@ -119,84 +119,64 @@ void Server::SendFileToClient(std::string aFilePath) {
 
             bool lFinished = false; // Mark if finished handling the entire file request (read, send, acks).
             bool lFinishedReading = false;  // Mark if finished reading from the file.
-            bool lFirst = true;
 
             int bytesRead = 0;
 
             while(!lFinished) {
                 if(!lFinishedReading)
                 {
-                    while(!window.IsFull()) {
-                        // Only on the first time through the loop skip sending the packet.
-                        if(!lFirst)
-                        {
-                            //Contruct a packet using the read in data
-                            Packet pckt(buffer, bytesRead, packID++, 0);
+                    while(!window.IsFull() && !lFinishedReading)
+                    {
+                        // Read the next chunk of data in.
+                        bytesRead = lFileStream.readsome(buffer, PACKET_DATA_SIZE);
+                        totalBytesRead += bytesRead;
 
-                            // If this is the end, mark the packet as such.
-                            std::cout << "Finished reading: " << lFinishedReading << std::endl;
-                            if(lFinishedReading)
-                            {
-                                std::cout << "\tMarking last packet with ID=" << pckt.GetID() << std::endl;
-                                pckt.setLastPacket();
-                            }
-
-                            // Send the packet
-                            std::cout << "Sending ID=" << pckt.GetID() << std::endl;
-
-                            n = sendto(sock, pckt.GetRawData(), pckt.GetSize(), 0,
-                                        (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
-
-                            // Mark the time this packet was sent as now so that later it can be reset if it is not ACKed.
-                            struct timeval lTime;
-                            if(0 != gettimeofday(&lTime, NULL))
-                            {
-                                std::cerr << "Error: gettimeofday(): " << strerror(errno) << "\n";
-                                exit(-1);
-                            }
-                            pckt.setTimeSent(lTime);
-
-                            //Push packet onto the server window.
-                            window.Push(pckt);
-                        }
-                        lFirst = false; // this is no longer the first time through this while loop
-
-                        // There is no more data to read.
-                        if(lFinishedReading)
-                        {
+                        if(lFileStream.bad()) {
+                            std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
+                            exit(-1);
+                        } else if(lFileStream.eof()) {
+                            //Done reading the file
+                            std::cout << "Found eof.  This should not happen." << std::endl;
                             break;
                         }
-                        else
+                        else if(bytesRead == 0)
                         {
-                            bytesRead = lFileStream.readsome(buffer, PACKET_DATA_SIZE);
-                            totalBytesRead += bytesRead;
-
-                            if(lFileStream.bad()) {
-                                std::cerr << "Error reading the file: " << strerror(errno) << std::endl;
-                                exit(-1);
-                            } else if(lFileStream.eof()) {
-                                //Done reading the file
-                                std::cout << "Done reading the file." << std::endl;
-                                lFinishedReading = true;
-                            }
-                            else if(bytesRead == 0)
-                            {
-                                // No more data to read.
-                                std::cout << "No more data to read." << std::endl;
-                                lFinishedReading = true;
-                            }
-
-                            // If the current location in the file is at the end, this is the end.  Boom.
-                            if(!lFinishedReading)
-                            {
-                                lFinishedReading = (lFileLength == lFileStream.tellg());
-
-                                if(lFinishedReading)
-                                {
-                                    std::cout << "\tFound end of file." << std::endl;
-                                }
-                            }
+                            // No more data to read.
+                            std::cout << "No more data to read.  This should not happen." << std::endl;
+                            break;
                         }
+
+                        // If the current location in the file is at the end, this is the end.  Boom.
+                        lFinishedReading = (lFileLength == lFileStream.tellg());
+
+                        //Contruct a packet using the read in data
+                        Packet pckt(buffer, bytesRead, packID++, 0);
+
+                        // If this is the end, mark the packet as such.
+                        // std::cout << "Finished reading: " << lFinishedReading << std::endl;
+                        if(lFinishedReading)
+                        {
+                            std::cout << "\tMarking last packet with ID=" << pckt.GetID() << std::endl;
+                            pckt.setLastPacket();
+                        }
+
+                        // Send the packet
+                        std::cout << "Sending packet with ID=" << pckt.GetID() << std::endl;
+
+                        n = sendto(sock, pckt.GetRawData(), pckt.GetSize(), 0,
+                                    (struct sockaddr *)&clientAddress, sizeof(struct sockaddr));
+
+                        // Mark the time this packet was sent as now so that later it can be reset if it is not ACKed.
+                        struct timeval lTime;
+                        if(0 != gettimeofday(&lTime, NULL))
+                        {
+                            std::cerr << "Error: gettimeofday(): " << strerror(errno) << "\n";
+                            exit(-1);
+                        }
+                        pckt.setTimeSent(lTime);
+
+                        //Push packet onto the server window.
+                        window.Push(pckt);
                     }
                 }
 
