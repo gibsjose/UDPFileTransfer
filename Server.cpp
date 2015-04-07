@@ -222,8 +222,22 @@ void Server::SendFileToClient(std::string aFilePath) {
                         Packet lPacket(buffer, n);
                         if(lPacket.isAckPacket())
                         {
-                            std::cout << "ACKing ID=" << lPacket.GetID() << std::endl;
-                            window.AckPacketWithID(lPacket.GetID());
+                            // Compare checksums of an ACK packet (only the internal data matters, not the ID)
+                            // and the received packet.
+                            char buffer[ACK_DATA_SIZE];
+                            strncpy(buffer, ACK_DATA, ACK_DATA_SIZE);
+                            Packet lTempACK = Packet(buffer, ACK_DATA_SIZE, 0, IS_ACK_PACKET);
+
+                            if(lTempACK.CompareChecksum(lPacket.GetChecksum()))
+                            {
+                                // If the checksum is good, accept the ACK.
+                                std::cout << "ACKing ID=" << lPacket.GetID() << std::endl;
+                                window.AckPacketWithID(lPacket.GetID());
+                            }
+                            else
+                            {
+                                std::cout << "Rejecting ACK packet due to checksum mismatch on data." << std::endl;
+                            }
                         }
 
                         if(lFinishedReading && window.IsEmpty())
