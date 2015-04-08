@@ -31,7 +31,7 @@ void ClientWindow::Push(const Packet & packet) {
     uint32_t id = packet.GetID();
     uint32_t index = id % packets.size();
 
-    if(!packets.at(index).isEmpty()) {
+    if(!packets.at(index).isEmpty() && (packets.at(index).GetID() != id)) {
         std::cerr << "Error: Overwriting a non-empty packet in window... This should never happen" << std::endl;
     }
 
