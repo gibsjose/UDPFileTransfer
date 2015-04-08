@@ -9,6 +9,18 @@ size_t ClientWindow::GetSize(void) {
     return packets.size();
 }
 
+size_t ClientWindow::GetNumberOfPackets(void) {
+    size_t count = 0;
+
+    for(int i = 0; i < packets.size(); i++) {
+        if(!packets.at(i).isEmpty()) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
 bool ClientWindow::IsEmpty(void) {
     for(int i = 0; i < packets.size(); i++) {
         if(!packets.at(i).isEmpty()) {

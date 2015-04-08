@@ -38,8 +38,7 @@ void Client::Run(void) {
                     //Compute checksum on packet before we push it and send ACK
                     if(packets.at(i).CompareChecksum(packets.at(0).GetChecksum())) {
                         //Push the packet to the window
-                        if(window.Push(packets.at(i)))
-                        {
+                        if(window.Push(packets.at(i))) {
                             //Send an ACK to the server
                             SendAckToServer(packets.at(i).GetID());
                         }

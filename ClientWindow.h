@@ -11,6 +11,7 @@ class ClientWindow {
 public:
     ClientWindow(size_t size);
     size_t GetSize(void);
+    size_t GetNumberOfPackets(void);
     bool IsEmpty(void);
     bool IsEmpty(uint32_t);
     void Clear(void);
