@@ -39,6 +39,7 @@ void Client::Run(void) {
                     //Do not push packets that have already been acked: This means the ACK to the
                     // server likely failed, so it is sending it again. ACK and move on
                     if(packets.at(i).GetID() <= (lastPacketAcked - window.GetSize())) {
+                        std::cout << "Received packet " << packets.at(i).GetID() << " multiple times: ACKing and moving on" << std::endl;
                         SendAckToServer(packets.at(i).GetID());
                         continue;
                     }
@@ -50,6 +51,7 @@ void Client::Run(void) {
                             //Send an ACK to the server
                             SendAckToServer(packets.at(i).GetID());
                             lastPacketAcked = packets.at(i).GetID();
+                            std::cout << "Last Packet ACKed: " << lastPacketAcked << std::endl;
                         }
 
                         if(packets.at(i).isLastPacket()) {
