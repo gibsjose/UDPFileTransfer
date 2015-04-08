@@ -50,7 +50,7 @@ void Client::Run(void) {
                     }
 
                     //Check if it is the last packet
-                    if(packets.at(i).isLastPacket()) {
+                    if(packets.at(i).isLastPacket() && window.IsEmpty()) {
                         finished = true;
                         break;
                     }
