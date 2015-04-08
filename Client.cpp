@@ -40,7 +40,7 @@ void Client::Run(void) {
                         window.Push(packets.at(i));
 
                         //Send an ACK to the server
-                        SendAckToServer(packets.at(i).GetID());
+                        //SendAckToServer(packets.at(i).GetID());
 
                         //Try to pop and write as many packets as we can
                         while(!(packet = window.Pop()).isEmpty()) {
