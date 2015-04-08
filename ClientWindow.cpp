@@ -31,13 +31,16 @@ void ClientWindow::Push(const Packet & packet) {
     uint32_t id = packet.GetID();
     uint32_t index = id % packets.size();
 
-    if(!packets.at(index).isEmpty() && (packets.at(index).GetID() != id)) {
+    if(!packets.at(index).isEmpty()) {
         std::cerr << "Overwriting packet with id " << packets.at(index).GetID() << " at index " << index << " in window with packet with id " << id << std::endl;
 
         std::cerr << "WARNING: Overwriting a non-empty packet in window... This should never happen" << std::endl;
     }
 
-    packets[index] = packet;
+    //Overwrite empty packet
+    else {
+        packets[index] = packet;
+    }
 }
 
 //Returns the VIP each time, only sliding forward if the VIP is not empty
