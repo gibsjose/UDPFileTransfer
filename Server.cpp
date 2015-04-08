@@ -183,6 +183,8 @@ void Server::SendFileToClient(std::string aFilePath) {
                 // Resend packets that have timed out.
                 std::vector<Packet*> lPacketsToResend = window.GetTimedOutPackets();
 
+                //std::cout << "Resending " << lPacketsToResend.size() << " packets" << std::endl;
+
                 for(size_t i = 0; i < lPacketsToResend.size(); i++)
                 {
                     // Resend the packet

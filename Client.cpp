@@ -32,8 +32,6 @@ void Client::Run(void) {
                 //Recieve a vector of up to 5 packets from the server
                 std::vector<Packet> packets = GetPacketsFromServer();
 
-                std::cout << "Received " << packets.size() << " packets" << std::endl;
-
                 for(size_t i = 0; i < packets.size(); i++) {
 
                     //Compute checksum on packet before we push it and send ACK
@@ -42,7 +40,7 @@ void Client::Run(void) {
                         window.Push(packets.at(i));
 
                         //Send an ACK to the server
-                        //SendAckToServer(packets.at(i).GetID());
+                        SendAckToServer(packets.at(i).GetID());
 
                         //Try to pop and write as many packets as we can
                         while(!(packet = window.Pop()).isEmpty()) {
@@ -52,7 +50,7 @@ void Client::Run(void) {
                     }
 
                     //Check if it is the last packet
-                    if(packets.at(i).isLastPacket()) {
+                    if(packets.at(i).isLastPacket() && window.IsEmpty()) {
                         finished = true;
                         break;
                     }
