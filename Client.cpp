@@ -38,7 +38,7 @@ void Client::Run(void) {
 
                     //Do not push packets that have already been acked: This means the ACK to the
                     // server likely failed, so it is sending it again. ACK and move on
-                    if(packets.at(i).GetID() <= (lastPacketAcked - window.Size())) {
+                    if(packets.at(i).GetID() <= (lastPacketAcked - window.GetSize())) {
                         SendAckToServer(packets.at(i).GetID());
                         continue;
                     }
