@@ -32,7 +32,9 @@ void ClientWindow::Push(const Packet & packet) {
     uint32_t index = id % packets.size();
 
     if(!packets.at(index).isEmpty() && (packets.at(index).GetID() != id)) {
-        std::cerr << "Error: Overwriting a non-empty packet in window... This should never happen" << std::endl;
+        std::cerr << "Overwriting packet with id " << packets.at(index).GetID() << " at index " << index << " in window with packet with id " << id << std::endl;
+
+        std::cerr << "WARNING: Overwriting a non-empty packet in window... This should never happen" << std::endl;
     }
 
     packets[index] = packet;

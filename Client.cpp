@@ -21,6 +21,7 @@ void Client::Run(void) {
         //File is open
         else {
             bool finished = false;
+            bool foundLastPacket = false;
 
             //Declare window of size 5 for the client
             ClientWindow window(5);
@@ -35,12 +36,16 @@ void Client::Run(void) {
                 for(size_t i = 0; i < packets.size(); i++) {
 
                     //Compute checksum on packet before we push it and send ACK
-                    if(packets.at(i).CompareChecksum(packets.at(i).GetChecksum())) {
+                    if(packets.at(i).CompareChecksum(packets.at(0).GetChecksum())) {
                         //Push the packet to the window
                         window.Push(packets.at(i));
 
                         //Send an ACK to the server
                         SendAckToServer(packets.at(i).GetID());
+
+                        if(packets.at(i).isLastPacket()) {
+                            foundLastPacket = true;
+                        }
 
                         //Try to pop and write as many packets as we can
                         while(!(packet = window.Pop()).isEmpty()) {
@@ -48,12 +53,12 @@ void Client::Run(void) {
                             file.write(packet.GetData(), packet.GetDataSize());
                         }
                     }
+                }
 
-                    //Check if it is the last packet
-                    if(packets.at(i).isLastPacket() && window.IsEmpty()) {
-                        finished = true;
-                        break;
-                    }
+                //Check if it is the last packet
+                if(foundLastPacket && window.IsEmpty()) {
+                    finished = true;
+                    break;
                 }
             }
 
