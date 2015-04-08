@@ -14,7 +14,7 @@ public:
     bool IsEmpty(void);
     bool IsEmpty(uint32_t);
     void Clear(void);
-    void Push(const Packet & value);
+    bool Push(const Packet & value);
     Packet Pop(void);
 
 private:
