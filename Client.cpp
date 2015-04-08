@@ -22,6 +22,7 @@ void Client::Run(void) {
         else {
             bool finished = false;
             bool foundLastPacket = false;
+            uint32_t lastPacketAcked = 0;
 
             //Declare window of size 5 for the client
             ClientWindow window(5);
@@ -35,12 +36,20 @@ void Client::Run(void) {
 
                 for(size_t i = 0; i < packets.size(); i++) {
 
+                    //Do not push packets that have already been acked: This means the ACK to the
+                    // server likely failed, so it is sending it again. ACK and move on
+                    if(packets.at(i).GetID() <= (lastPacketAcked - window.Size())) {
+                        SendAckToServer(packets.at(i).GetID());
+                        continue;
+                    }
+
                     //Compute checksum on packet before we push it and send ACK
                     if(packets.at(i).CompareChecksum(packets.at(0).GetChecksum())) {
                         //Push the packet to the window
                         if(window.Push(packets.at(i))) {
                             //Send an ACK to the server
                             SendAckToServer(packets.at(i).GetID());
+                            lastPacketAcked = packets.at(i).GetID();
                         }
 
                         if(packets.at(i).isLastPacket()) {
