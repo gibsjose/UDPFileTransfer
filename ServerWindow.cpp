@@ -53,7 +53,7 @@ std::vector<Packet *> ServerWindow::GetTimedOutPackets()
     {
         struct timeval lDummy;
         struct timeval lTimeSent = packets[i].GetTimeSent();
-        if( (!packets[i].isAcked() ) && (-1 == timeval_subtract(&lDummy, &(lTimeSent), &lResult)) )
+        if(!packets[i].isEmpty() && !packets[i].isAcked() && (timeval_subtract(&lDummy, &lTimeSent, &lResult) == 1))
         {
             // -1 is returned when the result is negative (i.e. when the time the
             // packet was sent was less than the timeval specifying the oldest permissible time).
