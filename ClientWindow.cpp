@@ -3,6 +3,13 @@
 ClientWindow::ClientWindow(size_t size) {
     packets.resize(size);
     vip = 0;
+	lowerBound = 0;
+	upperBound = size - 1;
+}
+
+bool ClientWindow::IsOldPacketID(uint32_t id)
+{
+	return id < lowerBound;
 }
 
 size_t ClientWindow::GetSize(void) {
@@ -41,19 +48,27 @@ void ClientWindow::Clear(void) {
 
 bool ClientWindow::Push(const Packet & packet) {
     uint32_t id = packet.GetID();
-    uint32_t index = id % packets.size();
+	if(id >= lowerBound || id <= upperBound)
+	{
+		uint32_t index = id % packets.size();
 
-    if(!packets.at(index).isEmpty()) {
-        std::cerr << "Failed to overwrite packet with id " << packets.at(index).GetID() << " at index " << index << " in window with packet with id " << id << std::endl;
+		if(!packets.at(index).isEmpty()) {
+		    std::cerr << "Failed to overwrite packet with id " << packets.at(index).GetID() << " at index " << index << " in window with packet with id " << id << std::endl;
 
-        return false;
-    }
+		    return false;
+		}
 
-    //Overwrite empty packet
-    else {
-        packets[index] = packet;
-        return true;
-    }
+		//Overwrite empty packet
+		else {
+		    packets[index] = packet;
+		    return true;
+		}
+	}
+	else
+	{
+		// The ID was not in the window, so do nothing with it.
+		return false;
+	}
 }
 
 //Returns the VIP each time, only sliding forward if the VIP is not empty
@@ -69,6 +84,9 @@ Packet ClientWindow::Pop(void) {
         if(++vip >= packets.size()) {
             vip = 0;
         }
+
+		lowerBound++;
+		upperBound++;
     }
 
     //Return the VIP, empty or not

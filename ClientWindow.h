@@ -17,10 +17,12 @@ public:
     void Clear(void);
     bool Push(const Packet & value);
     Packet Pop(void);
+	bool IsOldPacketID(uint32_t id);
 
 private:
     std::vector<Packet> packets;    //Packets, yay...
     uint32_t vip;                   //Very Important Packet
+	size_t lowerBound, upperBound;
 };
 
 #endif//CLIENTWINDOW_H

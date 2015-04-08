@@ -22,7 +22,6 @@ void Client::Run(void) {
         else {
             bool finished = false;
             bool foundLastPacket = false;
-            long int lastPacketAcked = 0;
 
             //Declare window of size 5 for the client
             ClientWindow window(5);
@@ -31,36 +30,45 @@ void Client::Run(void) {
             //Loop until we get the last packet
             while(!finished) {
 
-                //Recieve a vector of up to 5 packets from the server
+                //Receive a vector of up to 5 packets from the server
                 std::vector<Packet> packets = GetPacketsFromServer();
 
                 for(size_t i = 0; i < packets.size(); i++) {
 
                     //Do not push packets that have already been acked: This means the ACK to the
-                    // server likely failed, so it is sending it again. ACK and move on
-                    if((int)packets.at(i).GetID() <= (lastPacketAcked - (int)window.GetSize())) {
+                    // server likely failed, so it is sending it again. ACK and move on.
+                    // Don't forget periods.
+                    if(window.IsOldPacketID(packets.at(i).GetID()))
+                    {
                         std::cout << "Received packet " << packets.at(i).GetID() << " multiple times: ACKing and moving on" << std::endl;
                         SendAckToServer(packets.at(i).GetID());
                         continue;
                     }
 
                     //Compute checksum on packet before we push it and send ACK
-                    if(packets.at(i).CompareChecksum(packets.at(0).GetChecksum())) {
+		   			uint16_t lChecksum = packets.at(i).GetChecksum();
+					uint16_t lRecomputedChecksum = packets.at(i).RecomputeChecksum();
+					//std::cout << "Checksum: " << lChecksum << std::endl;
+					//std::cout << "Recomputed Checksum: " << lRecomputedChecksum << std::endl;
+                    if(lChecksum == lRecomputedChecksum) {
                         //Push the packet to the window
                         if(window.Push(packets.at(i))) {
+                            std::cout << "\tPushed packet to window; ID=" << packets.at(i).GetID() << std::endl;
                             //Send an ACK to the server
                             SendAckToServer(packets.at(i).GetID());
-                            lastPacketAcked = (int)packets.at(i).GetID();
-                            std::cout << "Last Packet ACKed: " << lastPacketAcked << std::endl;
                         }
 
+						std::cout << "\t\t# Of packets in window: " << window.GetNumberOfPackets() << std::endl;
+
                         if(packets.at(i).isLastPacket()) {
+							std::cout << "Found last packet." << std::endl;
                             foundLastPacket = true;
                         }
 
                         //Try to pop and write as many packets as we can
                         while(!(packet = window.Pop()).isEmpty()) {
                             //Write the file to the packet
+                            std::cout << "\t\t\tWrote packet with ID=" << packet.GetID() << std::endl;
                             file.write(packet.GetData(), packet.GetDataSize());
                         }
                     }
@@ -68,6 +76,7 @@ void Client::Run(void) {
 
                 //Check if it is the last packet
                 if(foundLastPacket && window.IsEmpty()) {
+					std::cout << "Finished." << std::endl;
                     finished = true;
                     break;
                 }

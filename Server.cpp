@@ -158,6 +158,7 @@ void Server::SendFileToClient(std::string aFilePath) {
                         {
                             std::cout << "\tMarking last packet with ID=" << pckt.GetID() << std::endl;
                             pckt.setLastPacket();
+							pckt.RecomputeChecksum();
                         }
 
                         // Send the packet
@@ -224,13 +225,14 @@ void Server::SendFileToClient(std::string aFilePath) {
                         Packet lPacket(buffer, n);
                         if(lPacket.isAckPacket())
                         {
-                            // Compare checksums of an ACK packet (only the internal data matters, not the ID)
+                            // Compare checksums of an ACK packet (everything except the checksum matters)
                             // and the received packet.
                             char buffer[ACK_DATA_SIZE];
                             strncpy(buffer, ACK_DATA, ACK_DATA_SIZE);
-                            Packet lTempACK = Packet(buffer, ACK_DATA_SIZE, 0, IS_ACK_PACKET);
+                            Packet lTempACK = Packet(buffer, ACK_DATA_SIZE, lPacket.GetID(), IS_ACK_PACKET);
+			    			lTempACK.setAckPacket();
 
-                            if(lTempACK.CompareChecksum(lPacket.GetChecksum()))
+                            if(lTempACK.RecomputeChecksum() == lPacket.GetChecksum())
                             {
                                 // If the checksum is good, accept the ACK.
                                 std::cout << "ACKing ID=" << lPacket.GetID() << std::endl;
@@ -238,7 +240,11 @@ void Server::SendFileToClient(std::string aFilePath) {
                             }
                             else
                             {
-                                std::cout << "Rejecting ACK packet due to checksum mismatch on data." << std::endl;
+								std::cout << "Temp ACK packet:" << std::endl;
+								lTempACK.Print();
+								std::cout << "\nReal ACK packet:" << std::endl;
+								lPacket.Print();
+                                std::cout << "Rejecting ACK packet (ID=" << lPacket.GetID() << ") due to checksum mismatch on data." << std::endl;
                             }
                         }
 

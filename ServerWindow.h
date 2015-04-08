@@ -21,6 +21,7 @@ public:
     void AckPacketWithID(uint16_t aID);
     void Push(const Packet & value);
     Packet Pop(void);
+    void Print();
 
 private:
     std::vector<Packet> packets;    //Packets, yay...

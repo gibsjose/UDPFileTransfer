@@ -28,7 +28,7 @@ std::vector<Packet *> ServerWindow::GetTimedOutPackets()
     // 100ms (hardcoded timeout if not acked)
     struct timeval lTimeoutTime;
     lTimeoutTime.tv_sec = 0;
-    lTimeoutTime.tv_usec = 100000;  // 100ms
+    lTimeoutTime.tv_usec = 50000;  // 50ms
 
     // Record now.
     struct timeval lNowTime;
@@ -120,10 +120,21 @@ void ServerWindow::AckPacketWithID(uint16_t aID)
     }
     if(!lFound)
     {
-        throw GeneralException("Could not set the packet as acked since it is not in the window. ID: "
-                                    + std::to_string(aID));
+		this->Print();
+        std::cout << ("Could not set the packet as acked since it is not in the window. ID: "
+                                    + std::to_string(aID)) << std::endl;
     }
     // std::cout << "AckPacketWithID(): start: " << this->mStart << " end: " << this->mEnd << std::endl;
+}
+
+void ServerWindow::Print()
+{
+	std::cout << "Window size: " << this->GetPacketCount() << std::endl;
+
+	for(size_t i = 0; i < packets.size(); i++)
+	{
+		std::cout << "Packet ID: " << packets[i].GetID() << std::endl;
+	}
 }
 
 void ServerWindow::Push(const Packet & packet) {

@@ -32,8 +32,11 @@ public:
     uint16_t GetID() const { return mID; }
     char * GetData() const { return mData; }
     size_t GetDataSize() const { return mNumDataBytes; }
-    const uint16_t GetChecksum() const { return mChecksum; }
+    const uint16_t GetChecksum();
+	const uint16_t RecomputeChecksum();
     const struct timeval GetTimeSent() const { return mTimeSent; }
+    char * GetCriticalData();
+	size_t GetCriticalDataSize();
 
     const bool CompareChecksum(const uint16_t checksum);
 

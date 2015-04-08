@@ -28,6 +28,39 @@ Packet::Packet(char * aRawData, size_t aNumBytes)
     mNumDataBytes = lDataNumBytes;
 }
 
+char * Packet::GetCriticalData()
+{
+	// return the flags, id and data in a buffer.
+	char * lReturnData = (char *)malloc(this->GetCriticalDataSize());
+    char * lTemp = lReturnData;
+
+    memcpy(lTemp, &mID, sizeof(uint32_t));
+    lTemp += sizeof(uint32_t);
+    memcpy(lTemp, &mFlags, sizeof(uint16_t));
+    lTemp += sizeof(uint16_t);
+    memcpy(lTemp, mData, mNumDataBytes);
+
+    return lReturnData;
+}
+
+const uint16_t Packet::RecomputeChecksum()
+{
+	mChecksum = ip_checksum(GetCriticalData(), GetCriticalDataSize());
+	return mChecksum;
+}
+
+const uint16_t Packet::GetChecksum()
+{
+	return mChecksum;
+}
+
+
+size_t Packet::GetCriticalDataSize()
+{
+	// flags, id and data size
+	return (sizeof(uint32_t) + sizeof(uint16_t) + mNumDataBytes);
+}
+
 Packet::Packet(char * aContentData, size_t aNumBytes, uint32_t aID, uint16_t aFlags)
 {
     if(PACKET_SIZE >= (sizeof(mID) + sizeof(mChecksum) + sizeof(mFlags) + aNumBytes))
@@ -37,14 +70,14 @@ Packet::Packet(char * aContentData, size_t aNumBytes, uint32_t aID, uint16_t aFl
         mData = (char *)malloc(mNumDataBytes);
         memcpy(mData, aContentData, mNumDataBytes);
 
-        // Calculate the 16 bit IP checksum of the data.
-        mChecksum = ip_checksum(mData, mNumDataBytes);
-
         // Save the flags.
         mFlags = aFlags;
 
         // Save the ID.
         mID = aID;
+
+		// Save the checksum. Last!
+		mChecksum = RecomputeChecksum();
     }
     else
     {
@@ -114,11 +147,6 @@ void Packet::clear()
 void Packet::setTimeSent(struct timeval aTime)
 {
     mTimeSent = aTime;
-}
-
-//Compare the checksum
-const bool Packet::CompareChecksum(const uint16_t checksum) {
-    return (checksum == ip_checksum(mData, mNumDataBytes));
 }
 
 uint16_t Packet::ip_checksum(const void *buf, size_t hdr_len)
