@@ -32,6 +32,8 @@ void Client::Run(void) {
                 //Recieve a vector of up to 5 packets from the server
                 std::vector<Packet> packets = GetPacketsFromServer();
 
+                std::cout << "Received " << packets.size() << " packets" << std::endl;
+
                 for(size_t i = 0; i < packets.size(); i++) {
 
                     //Compute checksum on packet before we push it and send ACK
