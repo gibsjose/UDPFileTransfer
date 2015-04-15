@@ -72,6 +72,10 @@ void Client::Run(void) {
                             file.write(packet.GetData(), packet.GetDataSize());
                         }
                     }
+                    else
+                    {
+                        std::cout << "Failed checksum: dropping packet with ID=" << packets.at(i).GetID() << std::endl;
+                    }
                 }
 
                 //Check if it is the last packet

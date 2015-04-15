@@ -120,7 +120,7 @@ void ServerWindow::AckPacketWithID(uint16_t aID)
     }
     if(!lFound)
     {
-		this->Print();
+		//this->Print();
         std::cout << ("Could not set the packet as acked since it is not in the window. ID: "
                                     + std::to_string(aID)) << std::endl;
     }
